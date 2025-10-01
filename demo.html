@@ -1,0 +1,181 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Storytelling Tài chính – Impress.js + Tailwind + ECharts</title>
+
+  <!-- TailwindCSS -->
+  <script defer src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Impress.js -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/impress.js/0.5.3/impress.min.js"></script>
+
+  <!-- ECharts -->
+  <script defer src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+</head>
+<body class="overflow-hidden bg-gray-50 text-gray-800 selection:bg-cyan-200 selection:text-gray-900 min-h-screen">
+
+  <!-- Điều khiển -->
+  <div class="fixed bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 sm:gap-3">
+    <button id="prevBtn" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gray-800/70 hover:bg-gray-700 text-white text-sm font-semibold">← Prev</button>
+    <span id="stepCounter" class="text-sm tracking-widest text-gray-600">STEP 1 / 12</span>
+    <button id="nextBtn" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gray-800/70 hover:bg-gray-700 text-white text-sm font-semibold">Next →</button>
+  </div>
+
+  <div id="impress" class="transition-all duration-600 ease-[cubic-bezier(0.22,0.61,0.36,1)] [&.impress-enabled_.step]:opacity-30 [&.impress-enabled_.step.active]:opacity-100">
+    
+    <!-- 1. Intro -->
+    <div id="s1" class="step w-full max-w-[98vw] min-w-[70vw] mx-auto rounded-2xl p-6 bg-white shadow-2xl ring-1 ring-gray-200 text-center" data-x="0" data-y="0" data-scale="2">
+      <h1 class="text-[4vw] sm:text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600">
+        Câu chuyện Tài chính FPT
+      </h1>
+      <p class="mt-3 sm:mt-4 text-base sm:text-lg text-gray-600">Một hành trình tăng trưởng & chuyển đổi số</p>
+      <p class="mt-2 text-sm text-gray-400">Dùng phím mũi tên hoặc nút bên dưới để điều hướng.</p>
+    </div>
+
+    <!-- 2. Bối cảnh -->
+    <div id="s2" class="step w-full max-w-[98vw] min-w-[70vw] mx-auto rounded-2xl p-6 bg-white shadow-2xl ring-1 ring-gray-200" data-x="2800" data-y="-200" data-rotate="-10" data-scale="1.4">
+      <h2 class="text-[3.5vw] sm:text-3xl font-bold text-cyan-600">Bối cảnh</h2>
+      <div class="mt-4 space-y-3 text-base sm:text-lg">
+        <p class="opacity-100 transition-opacity duration-600 scale-105">Nhu cầu chuyển đổi số toàn cầu tăng mạnh.</p>
+        <p class="opacity-60">Đầu tư cho AI, Cloud, Cybersecurity gia tăng.</p>
+        <p class="opacity-60">Doanh nghiệp tìm đối tác outsourcing tin cậy.</p>
+      </div>
+    </div>
+
+    <!-- 3. Doanh thu -->
+    <div id="s3" class="step w-full max-w-[98vw] min-w-[70vw] mx-auto rounded-2xl p-6 bg-white shadow-2xl ring-1 ring-gray-200" data-x="4500" data-y="100" data-rotate="12" data-scale="1.5">
+      <h2 class="text-[3.5vw] sm:text-3xl font-bold text-emerald-600">Doanh thu qua các năm</h2>
+      <div id="revChart" class="w-full h-[220px] sm:h-[320px] md:h-[400px] mx-auto mt-4 rounded-xl ring-1 ring-gray-200 bg-gray-50"></div>
+      <p class="mt-3 text-sm text-gray-500">*Demo số liệu minh họa.</p>
+    </div>
+
+    <!-- 4. Lợi nhuận -->
+    <div id="s4" class="step w-full max-w-[98vw] min-w-[70vw] mx-auto rounded-2xl p-6 bg-white shadow-2xl ring-1 ring-gray-200" data-x="6300" data-y="300" data-rotate="-18" data-scale="1.6">
+      <h2 class="text-[3.5vw] sm:text-3xl font-bold text-amber-600">Lợi nhuận sau thuế</h2>
+      <div id="profitChart" class="w-full h-[220px] sm:h-[320px] md:h-[400px] mx-auto mt-4 rounded-xl ring-1 ring-gray-200 bg-gray-50"></div>
+      <p class="mt-3 text-sm text-gray-500">*Demo số liệu minh họa.</p>
+    </div>
+
+    <!-- 5. Biên lợi nhuận -->
+    <div id="s5" class="step w-full max-w-[98vw] min-w-[70vw] mx-auto rounded-2xl p-6 bg-white shadow-2xl ring-1 ring-gray-200" data-x="5600" data-y="-200" data-rotate-y="90" data-scale="1.3">
+      <h2 class="text-[3.5vw] sm:text-3xl font-bold text-fuchsia-600">Biên lợi nhuận</h2>
+      <div class="mt-4 space-y-3 text-base sm:text-lg leading-relaxed">
+        <p class="opacity-100 transition-opacity duration-600 scale-105">Tối ưu vận hành & mix dịch vụ giúp biên cải thiện.</p>
+        <p class="opacity-60">Chuyển dịch sang dịch vụ giá trị cao.</p>
+        <p class="opacity-60">Tỷ trọng mảng viễn thông ổn định.</p>
+      </div>
+    </div>
+
+    <!-- 6. Cơ cấu mảng -->
+    <div id="s6" class="step w-full max-w-[98vw] min-w-[70vw] mx-auto rounded-2xl p-6 bg-white shadow-2xl ring-1 ring-gray-200" data-x="9000" data-y="100" data-rotate="22" data-scale="1.5">
+      <h2 class="text-[3.5vw] sm:text-3xl font-bold text-purple-600">Cơ cấu doanh thu theo mảng</h2>
+      <div id="segChart" class="w-full h-[220px] sm:h-[320px] md:h-[400px] mx-auto mt-4 rounded-xl ring-1 ring-gray-200 bg-gray-50"></div>
+      <p class="mt-3 text-sm text-gray-500">*Demo cơ cấu: Công nghệ / Viễn thông / Giáo dục.</p>
+    </div>
+
+    <!-- 7. Image -->
+    <div id="s7" class="step w-full max-w-[98vw] min-w-[70vw] mx-auto rounded-2xl p-6 bg-white shadow-2xl ring-1 ring-gray-200" data-x="8300" data-y="900" data-z="-1200" data-rotate="180" data-scale="1.2">
+      <h2 class="text-[3.5vw] sm:text-3xl font-bold text-blue-600 mb-4">Không gian làm việc</h2>
+      <img class="mx-auto w-full max-w-[90vw] sm:max-w-[720px] rounded-2xl shadow-lg ring-1 ring-gray-200"
+           src="https://upload.wikimedia.org/wikipedia/commons/4/41/FPT_Tower_Ha_Noi.jpg" />
+      <p class="mt-3 text-base text-gray-600">Hệ sinh thái nhân sự & hạ tầng hỗ trợ tăng trưởng.</p>
+    </div>
+
+    <!-- ... (tiếp tục các slide 8-12 giữ format tương tự) ... -->
+
+  </div>
+
+  <script>
+    // Debounce
+    function debounce(func, wait) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const api = impress();
+      api.init();
+
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const stepCounter = document.getElementById('stepCounter');
+      const steps = Array.from(document.querySelectorAll('.step'));
+      const total = steps.length;
+
+      function updateCounter(activeEl) {
+        const idx = steps.indexOf(activeEl) + 1;
+        stepCounter.textContent = `STEP ${idx} / ${total}`;
+      }
+
+      prevBtn.addEventListener('click', debounce(() => api.prev(), 300));
+      nextBtn.addEventListener('click', debounce(() => api.next(), 300));
+
+      document.addEventListener('impress:stepenter', (e) => {
+        updateCounter(e.target);
+        const charts = e.target.querySelectorAll('[data-echart="1"]');
+        charts.forEach(node => {
+          const inst = echarts.getInstanceByDom(node);
+          if (inst) inst.resize();
+        });
+      });
+
+      // Init charts
+      function initChart(elId, option) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        el.setAttribute('data-echart', '1');
+        const chart = echarts.init(el);
+        chart.setOption(option);
+        return chart;
+      }
+
+      const revOption = {
+        backgroundColor: 'transparent',
+        grid: { left: 40, right: 20, top: 40, bottom: 40 },
+        title: { text: 'Doanh thu (tỷ VND)', left: 'center', textStyle: { color: '#111', fontSize: 14 } },
+        xAxis: { type: 'category', data: ['2019','2020','2021','2022','2023','2024'], axisLabel: { color: '#374151', fontSize: 12 } },
+        yAxis: { type: 'value', axisLabel: { color: '#374151', fontSize: 12 }, splitLine: { lineStyle: { color: 'rgba(0,0,0,.1)' } } },
+        tooltip: { trigger: 'axis' },
+        series: [{ type: 'line', smooth: true, data: [27000, 29000, 34000, 42000, 50000, 52600], itemStyle:{color:'#3b82f6'} }]
+      };
+
+      const profitOption = {
+        backgroundColor: 'transparent',
+        grid: { left: 40, right: 20, top: 40, bottom: 40 },
+        title: { text: 'Lợi nhuận sau thuế (tỷ VND)', left: 'center', textStyle: { color: '#111', fontSize: 14 } },
+        xAxis: { type: 'category', data: ['2019','2020','2021','2022','2023','2024'], axisLabel: { color: '#374151', fontSize: 12 } },
+        yAxis: { type: 'value', axisLabel: { color: '#374151', fontSize: 12 }, splitLine: { lineStyle: { color: 'rgba(0,0,0,.1)' } } },
+        tooltip: { trigger: 'axis' },
+        series: [{ type: 'bar', data: [3800, 4200, 5200, 6100, 6800, 7600], itemStyle:{color:'#f59e0b'} }]
+      };
+
+      const segOption = {
+        backgroundColor: 'transparent',
+        title: { text: 'Cơ cấu doanh thu', left: 'center', textStyle: { color: '#111', fontSize: 14 } },
+        tooltip: { trigger: 'item' },
+        legend: { bottom: 0, textStyle: { color: '#374151', fontSize: 12 } },
+        series: [{
+          type: 'pie',
+          radius: ['40%','70%'],
+          itemStyle: { borderRadius: 8, borderColor: '#fff', borderWidth: 2 },
+          data: [
+            { value: 60, name: 'Công nghệ' },
+            { value: 30, name: 'Viễn thông' },
+            { value: 10, name: 'Giáo dục' }
+          ]
+        }]
+      };
+
+      initChart('revChart', revOption);
+      initChart('profitChart', profitOption);
+      initChart('segChart', segOption);
+    });
+  </script>
+</body>
+</html>

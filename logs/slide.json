@@ -1,0 +1,298 @@
+{
+  "slide_data": {
+    "slides": [
+      {
+        "id": 1,
+        "title": "Tổng Quan Công Ty CP FPT Năm 2024",
+        "subtitle": "Doanh nghiệp Công nghệ - Viễn thông - Giáo dục",
+        "content": "FPT là tập đoàn công nghệ hoạt động trên 3 lĩnh vực chính: Công nghệ, Viễn thông và Giáo dục. Thành lập từ năm 1988, với 46 văn phòng toàn cầu và hạ tầng viễn thông phủ sóng 59/63 tỉnh thành Việt Nam. Quy mô nhân sự 48.162 người.",
+        "style": {
+          "bgColor": "bg-gray-100",
+          "textColor": "text-gray-900",
+          "align": "left"
+        },
+        "widget": {
+          "widget_type": "content",
+          "widget_name": "Tổng quan Công ty FPT 2024",
+          "output_type": "json",
+          "data": {},
+          "widget_code": {},
+          "image_url": "",
+          "html_content": "",
+          "filename": ""
+        }
+      },
+      {
+        "id": 2,
+        "title": "Ban Lãnh Đạo Công Ty CP FPT",
+        "content": "Chủ tịch HĐQT: Trương Gia Bình\nPhó Chủ tịch HĐQT: Bùi Quang Ngọc\nTổng giám đốc: Nguyễn Văn Khoa\nCùng các thành viên HĐQT và Ban kiểm soát gồm các chuyên gia trong và ngoài nước.",
+        "style": {
+          "bgColor": "bg-white",
+          "textColor": "text-gray-800",
+          "align": "left"
+        },
+        "widget": {
+          "widget_type": "content",
+          "widget_name": "Ban lãnh đạo Công ty CP FPT 2024",
+          "output_type": "json",
+          "data": {},
+          "widget_code": {},
+          "image_url": "",
+          "html_content": "",
+          "filename": ""
+        }
+      },
+      {
+        "id": 3,
+        "title": "Các Công Ty Con và Khoản Đầu Tư Nổi Bật",
+        "content": "FPT sở hữu cổ phần tại các công ty như:\n- FPT Telecom (45.66%)\n- FPT Software (100%)\n- FPT Education (100%)\n- FPT Digital Retail (46.54%)\n- TPBank (6.77%)\n- Vietcombank (1.17%)\n- FPT Securities (17.58%)\n- Synnex FPT (48%)",
+        "style": {
+          "bgColor": "bg-gray-50",
+          "textColor": "text-gray-900",
+          "align": "left"
+        },
+        "widget": {
+          "widget_type": "content",
+          "widget_name": "Công ty con và đầu tư FPT 2024",
+          "output_type": "json",
+          "data": {},
+          "widget_code": {},
+          "image_url": "",
+          "html_content": "",
+          "filename": ""
+        }
+      },
+      {
+        "id": 4,
+        "title": "Tổng Doanh Thu FPT Năm 2024",
+        "subtitle": "So sánh doanh thu qua các năm 2021-2024 (đơn vị: tỷ VNĐ)",
+        "content": "Doanh thu FPT liên tục tăng trưởng mạnh qua các năm, đạt 62.96 nghìn tỷ VNĐ năm 2024, tăng gần 20% so với năm 2023.",
+        "style": {
+          "bgColor": "bg-white",
+          "textColor": "text-gray-900",
+          "align": "center"
+        },
+        "widget": {
+          "widget_type": "chart",
+          "widget_name": "Doanh thu FPT 2021-2024",
+          "output_type": "json",
+          "data": {
+            "labels": [
+              "2021",
+              "2022",
+              "2023",
+              "2024"
+            ],
+            "datasets": [
+              {
+                "label": "Tổng doanh thu",
+                "data": [
+                  35671,
+                  44023,
+                  52625,
+                  62963
+                ],
+                "backgroundColor": "#2563eb"
+              }
+            ]
+          },
+          "widget_code": {},
+          "image_url": "",
+          "html_content": "",
+          "filename": ""
+        },
+        "widget_code": "{\n  \"backgroundColor\": \"transparent\",\n  \"color\": [\n    {\n      \"type\": \"linear\",\n      \"x\": 0,\n      \"y\": 0,\n      \"x2\": 0,\n      \"y2\": 1,\n      \"colorStops\": [\n        {\n          \"offset\": 0,\n          \"color\": \"#2F7ED8\"\n        },\n        {\n          \"offset\": 1,\n          \"color\": \"#46bdff\"\n        }\n      ]\n    },\n    {\n      \"type\": \"linear\",\n      \"x\": 0,\n      \"y\": 0,\n      \"x2\": 0,\n      \"y2\": 1,\n      \"colorStops\": [\n        {\n          \"offset\": 0,\n          \"color\": \"#8BBC21\"\n        },\n        {\n          \"offset\": 1,\n          \"color\": \"#d0ff32\"\n        }\n      ]\n    },\n    {\n      \"type\": \"linear\",\n      \"x\": 0,\n      \"y\": 0,\n      \"x2\": 0,\n      \"y2\": 1,\n      \"colorStops\": [\n        {\n          \"offset\": 0,\n          \"color\": \"#F28F43\"\n        },\n        {\n          \"offset\": 1,\n          \"color\": \"#ffd664\"\n        }\n      ]\n    },\n    {\n      \"type\": \"linear\",\n      \"x\": 0,\n      \"y\": 0,\n      \"x2\": 0,\n      \"y2\": 1,\n      \"colorStops\": [\n        {\n          \"offset\": 0,\n          \"color\": \"#77A1E5\"\n        },\n        {\n          \"offset\": 1,\n          \"color\": \"#b2f2ff\"\n        }\n      ]\n    },\n    {\n      \"type\": \"linear\",\n      \"x\": 0,\n      \"y\": 0,\n      \"x2\": 0,\n      \"y2\": 1,\n      \"colorStops\": [\n        {\n          \"offset\": 0,\n          \"color\": \"#FF9655\"\n        },\n        {\n          \"offset\": 1,\n          \"color\": \"#ffe180\"\n        }\n      ]\n    }\n  ],\n  \"title\": {\n    \"text\": \"Doanh thu thuần, giá vốn và lợi nhuận gộp\",\n    \"subtext\": \"\",\n    \"left\": \"center\",\n    \"top\": 18,\n    \"textStyle\": {\n      \"fontSize\": 19,\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"color\": \"#1a1a1a\",\n      \"fontWeight\": \"bold\"\n    }\n  },\n  \"legend\": {\n    \"show\": true,\n    \"top\": \"jsnull\",\n    \"bottom\": 36,\n    \"left\": \"center\",\n    \"right\": \"jsnull\",\n    \"itemGap\": 6,\n    \"textStyle\": {\n      \"fontSize\": 15,\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"color\": \"#1a1a1a\"\n    }\n  },\n  \"tooltip\": {\n    \"trigger\": \"axis\",\n    \"axisPointer\": {\n      \"type\": \"shadow\"\n    },\n    \"textStyle\": {\n      \"fontSize\": 12,\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"color\": \"#1a1a1a\"\n    },\n    \"formatter\": function(params) {     const unitMap = {'Doanh thu thuần': 'tỷ VND', 'Lợi nhuận gộp': 'tỷ VND', 'Giá vốn hàng bán': 'tỷ VND'};     const period = params[0].axisValue;     const header = `<b>${period}</b>`;     const items = params.map(p => {         const value = p.value;         if (value == null) return '';         const unit = unitMap[p.seriesName] || '';         const formatted = new Intl.NumberFormat('vi-VN', {             minimumFractionDigits: 2,             maximumFractionDigits: 2         }).format(value) + ' ' + (unit === '%' ? '%' : unit);         let colorValue = '';         if (typeof p.color === 'string') {             colorValue = p.color;         } else if (p.color && p.color.colorStops) {             colorValue = p.color.colorStops[0].color;         }         const colorIcon = `<span style=\\\"display:inline-block;margin-right:7px;border-radius:50%;width:15px;height:15px;background-color:${colorValue};\\\"></span>`;         return `${colorIcon}${p.seriesName}: <b>${formatted}</b>`;     });     return [header, ...items].join('<br>'); }\n  },\n  \"grid\": {\n    \"top\": 90,\n    \"bottom\": 114,\n    \"left\": \"10%\",\n    \"right\": \"7%\"\n  },\n  \"graphic\": {\n    \"elements\": [\n      {\n        \"type\": \"text\",\n        \"id\": \"source_text\",\n        \"style\": {\n          \"text\": \"Nguồn, tổng hợp: FPT, fireant.vn\",\n          \"font\": \"italic 12px Arial, sans-serif\",\n          \"fill\": \"#1a1a1a\"\n        },\n        \"right\": \"2%\",\n        \"bottom\": 18\n      }\n    ]\n  },\n  \"xAxis\": {\n    \"type\": \"category\",\n    \"name\": \"\",\n    \"nameLocation\": \"jsnull\",\n    \"nameGap\": \"jsnull\",\n    \"nameTextStyle\": {\n      \"fontSize\": 15,\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"color\": \"#1a1a1a\"\n    },\n    \"axisLine\": {\n      \"show\": false\n    },\n    \"axisLabel\": {\n      \"show\": true,\n      \"fontSize\": 15,\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"color\": \"#1a1a1a\"\n    },\n    \"data\": [\n      \"2021\",\n      \"2022\",\n      \"2023\",\n      \"2024\"\n    ]\n  },\n  \"yAxis\": [\n    {\n      \"type\": \"value\",\n      \"name\": \"tỷ VND\",\n      \"alignTicks\": true,\n      \"nameLocation\": \"end\",\n      \"nameGap\": 18,\n      \"nameTextStyle\": {\n        \"fontSize\": 13,\n        \"fontFamily\": \"Arial, sans-serif\",\n        \"color\": \"#1a1a1a\"\n      },\n      \"boundaryGap\": [\n        0,\n        0.02\n      ],\n      \"axisLine\": {\n        \"show\": true\n      },\n      \"splitLine\": {\n        \"show\": true,\n        \"lineStyle\": {\n          \"type\": \"dashed\"\n        }\n      },\n      \"axisLabel\": {\n        \"show\": true,\n        \"fontSize\": 15,\n        \"fontFamily\": \"Arial, sans-serif\",\n        \"color\": \"#1a1a1a\"\n      }\n    }\n  ],\n  \"series\": [\n    {\n      \"name\": \"Doanh thu thuần\",\n      \"type\": \"bar\",\n      \"stack\": \"\",\n      \"barWidth\": \"jsnull\",\n      \"yAxisIndex\": 0,\n      \"data\": [\n        35657.262545027,\n        44009.527680911,\n        52617.900827385,\n        62848.794351367\n      ],\n      \"label\": {\n        \"show\": true,\n        \"position\": \"top\",\n        \"color\": \"auto\",\n        \"fontSize\": 15,\n        \"fontFamily\": \"Arial, sans-serif\",\n        \"formatter\": function(params) {     if (params.value == null) return '';     const formatted = new Intl.NumberFormat('vi-VN', {         minimumFractionDigits: 2,         maximumFractionDigits: 2     }).format(params.value);     return 'tỷ VND' === '%' ? formatted + '%' : formatted; }\n      },\n      \"labelLayout\": {\n        \"hideOverlap\": true\n      },\n      \"itemStyle\": {\n        \"shadowColor\": \"#00000080\",\n        \"shadowBlur\": 5,\n        \"shadowOffsetX\": 2,\n        \"shadowOffsetY\": -2\n      },\n      \"smooth\": false,\n      \"symbolSize\": 6,\n      \"lineStyle\": {\n        \"width\": 3,\n        \"shadowColor\": \"#00000080\",\n        \"shadowBlur\": 5,\n        \"shadowOffsetX\": 0,\n        \"shadowOffsetY\": 3\n      }\n    },\n    {\n      \"name\": \"Lợi nhuận gộp\",\n      \"type\": \"bar\",\n      \"stack\": \"gross\",\n      \"barWidth\": \"jsnull\",\n      \"yAxisIndex\": 0,\n      \"data\": [\n        13631.964236778,\n        17167.278641198,\n        20319.553444682,\n        23698.348369916\n      ],\n      \"label\": {\n        \"show\": true,\n        \"position\": \"top\",\n        \"color\": \"auto\",\n        \"fontSize\": 15,\n        \"fontFamily\": \"Arial, sans-serif\",\n        \"formatter\": function(params) {     if (params.value == null) return '';     const formatted = new Intl.NumberFormat('vi-VN', {         minimumFractionDigits: 2,         maximumFractionDigits: 2     }).format(params.value);     return 'tỷ VND' === '%' ? formatted + '%' : formatted; }\n      },\n      \"labelLayout\": {\n        \"hideOverlap\": true\n      },\n      \"itemStyle\": {\n        \"shadowColor\": \"#00000080\",\n        \"shadowBlur\": 5,\n        \"shadowOffsetX\": 2,\n        \"shadowOffsetY\": -2\n      },\n      \"smooth\": false,\n      \"symbolSize\": 6,\n      \"lineStyle\": {\n        \"width\": 3,\n        \"shadowColor\": \"#00000080\",\n        \"shadowBlur\": 5,\n        \"shadowOffsetX\": 0,\n        \"shadowOffsetY\": 3\n      }\n    },\n    {\n      \"name\": \"Giá vốn hàng bán\",\n      \"type\": \"bar\",\n      \"stack\": \"gross\",\n      \"barWidth\": \"jsnull\",\n      \"yAxisIndex\": 0,\n      \"data\": [\n        22025.298308249,\n        26842.249039713,\n        32298.347382703,\n        39150.445981451\n      ],\n      \"label\": {\n        \"show\": true,\n        \"position\": \"top\",\n        \"color\": \"auto\",\n        \"fontSize\": 15,\n        \"fontFamily\": \"Arial, sans-serif\",\n        \"formatter\": function(params) {     if (params.value == null) return '';     const formatted = new Intl.NumberFormat('vi-VN', {         minimumFractionDigits: 2,         maximumFractionDigits: 2     }).format(params.value);     return 'tỷ VND' === '%' ? formatted + '%' : formatted; }\n      },\n      \"labelLayout\": {\n        \"hideOverlap\": true\n      },\n      \"itemStyle\": {\n        \"shadowColor\": \"#00000080\",\n        \"shadowBlur\": 5,\n        \"shadowOffsetX\": 2,\n        \"shadowOffsetY\": -2\n      },\n      \"smooth\": false,\n      \"symbolSize\": 6,\n      \"lineStyle\": {\n        \"width\": 3,\n        \"shadowColor\": \"#00000080\",\n        \"shadowBlur\": 5,\n        \"shadowOffsetX\": 0,\n        \"shadowOffsetY\": 3\n      }\n    }\n  ]\n}"
+      },
+      {
+        "id": 5,
+        "title": "Lợi Nhuận Sau Thuế FPT Năm 2024",
+        "subtitle": "So sánh lợi nhuận sau thuế qua các năm 2021-2024 (tỷ VNĐ)",
+        "content": "Lợi nhuận sau thuế của FPT đạt 9.43 nghìn tỷ VNĐ năm 2024, tăng trưởng hơn 20% so với năm 2023.",
+        "style": {
+          "bgColor": "bg-gray-100",
+          "textColor": "text-gray-900",
+          "align": "center"
+        },
+        "widget": {
+          "widget_type": "chart",
+          "widget_name": "Lợi nhuận sau thuế FPT 2021-2024",
+          "output_type": "json",
+          "data": {
+            "labels": [
+              "2021",
+              "2022",
+              "2023",
+              "2024"
+            ],
+            "datasets": [
+              {
+                "label": "Lợi nhuận sau thuế",
+                "data": [
+                  5349,
+                  6491,
+                  7788,
+                  9427
+                ],
+                "backgroundColor": "#16a34a"
+              }
+            ]
+          },
+          "widget_code": {},
+          "image_url": "",
+          "html_content": "",
+          "filename": ""
+        },
+        "widget_code": "{\n  \"backgroundColor\": \"transparent\",\n  \"color\": [\n    {\n      \"type\": \"linear\",\n      \"x\": 0,\n      \"y\": 0,\n      \"x2\": 0,\n      \"y2\": 1,\n      \"colorStops\": [\n        {\n          \"offset\": 0,\n          \"color\": \"#2F7ED8\"\n        },\n        {\n          \"offset\": 1,\n          \"color\": \"#46bdff\"\n        }\n      ]\n    },\n    {\n      \"type\": \"linear\",\n      \"x\": 0,\n      \"y\": 0,\n      \"x2\": 0,\n      \"y2\": 1,\n      \"colorStops\": [\n        {\n          \"offset\": 0,\n          \"color\": \"#8BBC21\"\n        },\n        {\n          \"offset\": 1,\n          \"color\": \"#d0ff32\"\n        }\n      ]\n    },\n    {\n      \"type\": \"linear\",\n      \"x\": 0,\n      \"y\": 0,\n      \"x2\": 0,\n      \"y2\": 1,\n      \"colorStops\": [\n        {\n          \"offset\": 0,\n          \"color\": \"#F28F43\"\n        },\n        {\n          \"offset\": 1,\n          \"color\": \"#ffd664\"\n        }\n      ]\n    },\n    {\n      \"type\": \"linear\",\n      \"x\": 0,\n      \"y\": 0,\n      \"x2\": 0,\n      \"y2\": 1,\n      \"colorStops\": [\n        {\n          \"offset\": 0,\n          \"color\": \"#77A1E5\"\n        },\n        {\n          \"offset\": 1,\n          \"color\": \"#b2f2ff\"\n        }\n      ]\n    },\n    {\n      \"type\": \"linear\",\n      \"x\": 0,\n      \"y\": 0,\n      \"x2\": 0,\n      \"y2\": 1,\n      \"colorStops\": [\n        {\n          \"offset\": 0,\n          \"color\": \"#FF9655\"\n        },\n        {\n          \"offset\": 1,\n          \"color\": \"#ffe180\"\n        }\n      ]\n    }\n  ],\n  \"title\": {\n    \"text\": \"Doanh thu thuần, lợi nhuận sau thuế\",\n    \"subtext\": \"\",\n    \"left\": \"center\",\n    \"top\": 18,\n    \"textStyle\": {\n      \"fontSize\": 19,\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"color\": \"#1a1a1a\",\n      \"fontWeight\": \"bold\"\n    }\n  },\n  \"legend\": {\n    \"show\": true,\n    \"top\": \"jsnull\",\n    \"bottom\": 36,\n    \"left\": \"center\",\n    \"right\": \"jsnull\",\n    \"itemGap\": 6,\n    \"textStyle\": {\n      \"fontSize\": 15,\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"color\": \"#1a1a1a\"\n    }\n  },\n  \"tooltip\": {\n    \"trigger\": \"axis\",\n    \"axisPointer\": {\n      \"type\": \"shadow\"\n    },\n    \"textStyle\": {\n      \"fontSize\": 12,\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"color\": \"#1a1a1a\"\n    },\n    \"formatter\": function(params) {     const unitMap = {'Doanh thu thuần': 'tỷ VND', 'Lợi nhuận sau thuế': 'tỷ VND'};     const period = params[0].axisValue;     const header = `<b>${period}</b>`;     const items = params.map(p => {         const value = p.value;         if (value == null) return '';         const unit = unitMap[p.seriesName] || '';         const formatted = new Intl.NumberFormat('vi-VN', {             minimumFractionDigits: 2,             maximumFractionDigits: 2         }).format(value) + ' ' + (unit === '%' ? '%' : unit);         let colorValue = '';         if (typeof p.color === 'string') {             colorValue = p.color;         } else if (p.color && p.color.colorStops) {             colorValue = p.color.colorStops[0].color;         }         const colorIcon = `<span style=\\\"display:inline-block;margin-right:7px;border-radius:50%;width:15px;height:15px;background-color:${colorValue};\\\"></span>`;         return `${colorIcon}${p.seriesName}: <b>${formatted}</b>`;     });     return [header, ...items].join('<br>'); }\n  },\n  \"grid\": {\n    \"top\": 90,\n    \"bottom\": 114,\n    \"left\": \"10%\",\n    \"right\": \"7%\"\n  },\n  \"graphic\": {\n    \"elements\": [\n      {\n        \"type\": \"text\",\n        \"id\": \"source_text\",\n        \"style\": {\n          \"text\": \"Nguồn, tổng hợp: FPT, fireant.vn\",\n          \"font\": \"italic 12px Arial, sans-serif\",\n          \"fill\": \"#1a1a1a\"\n        },\n        \"right\": \"2%\",\n        \"bottom\": 18\n      }\n    ]\n  },\n  \"xAxis\": {\n    \"type\": \"category\",\n    \"name\": \"\",\n    \"nameLocation\": \"jsnull\",\n    \"nameGap\": \"jsnull\",\n    \"nameTextStyle\": {\n      \"fontSize\": 15,\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"color\": \"#1a1a1a\"\n    },\n    \"axisLine\": {\n      \"show\": false\n    },\n    \"axisLabel\": {\n      \"show\": true,\n      \"fontSize\": 15,\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"color\": \"#1a1a1a\"\n    },\n    \"data\": [\n      \"2021\",\n      \"2022\",\n      \"2023\",\n      \"2024\"\n    ]\n  },\n  \"yAxis\": [\n    {\n      \"type\": \"value\",\n      \"name\": \"tỷ VND\",\n      \"alignTicks\": true,\n      \"nameLocation\": \"end\",\n      \"nameGap\": 18,\n      \"nameTextStyle\": {\n        \"fontSize\": 13,\n        \"fontFamily\": \"Arial, sans-serif\",\n        \"color\": \"#1a1a1a\"\n      },\n      \"boundaryGap\": [\n        0,\n        0.02\n      ],\n      \"axisLine\": {\n        \"show\": true\n      },\n      \"splitLine\": {\n        \"show\": true,\n        \"lineStyle\": {\n          \"type\": \"dashed\"\n        }\n      },\n      \"axisLabel\": {\n        \"show\": true,\n        \"fontSize\": 15,\n        \"fontFamily\": \"Arial, sans-serif\",\n        \"color\": \"#1a1a1a\"\n      }\n    }\n  ],\n  \"series\": [\n    {\n      \"name\": \"Doanh thu thuần\",\n      \"type\": \"bar\",\n      \"stack\": \"\",\n      \"barWidth\": \"jsnull\",\n      \"yAxisIndex\": 0,\n      \"data\": [\n        35657.262545027,\n        44009.527680911,\n        52617.900827385,\n        62848.794351367\n      ],\n      \"label\": {\n        \"show\": true,\n        \"position\": \"top\",\n        \"color\": \"auto\",\n        \"fontSize\": 15,\n        \"fontFamily\": \"Arial, sans-serif\",\n        \"formatter\": function(params) {     if (params.value == null) return '';     const formatted = new Intl.NumberFormat('vi-VN', {         minimumFractionDigits: 2,         maximumFractionDigits: 2     }).format(params.value);     return 'tỷ VND' === '%' ? formatted + '%' : formatted; }\n      },\n      \"labelLayout\": {\n        \"hideOverlap\": true\n      },\n      \"itemStyle\": {\n        \"shadowColor\": \"#00000080\",\n        \"shadowBlur\": 5,\n        \"shadowOffsetX\": 2,\n        \"shadowOffsetY\": -2\n      },\n      \"smooth\": false,\n      \"symbolSize\": 6,\n      \"lineStyle\": {\n        \"width\": 3,\n        \"shadowColor\": \"#00000080\",\n        \"shadowBlur\": 5,\n        \"shadowOffsetX\": 0,\n        \"shadowOffsetY\": 3\n      }\n    },\n    {\n      \"name\": \"Lợi nhuận sau thuế\",\n      \"type\": \"bar\",\n      \"stack\": \"\",\n      \"barWidth\": \"jsnull\",\n      \"yAxisIndex\": 0,\n      \"data\": [\n        5349.301099496,\n        6491.343454469,\n        7788.049739616,\n        9427.422530444\n      ],\n      \"label\": {\n        \"show\": true,\n        \"position\": \"top\",\n        \"color\": \"auto\",\n        \"fontSize\": 15,\n        \"fontFamily\": \"Arial, sans-serif\",\n        \"formatter\": function(params) {     if (params.value == null) return '';     const formatted = new Intl.NumberFormat('vi-VN', {         minimumFractionDigits: 2,         maximumFractionDigits: 2     }).format(params.value);     return 'tỷ VND' === '%' ? formatted + '%' : formatted; }\n      },\n      \"labelLayout\": {\n        \"hideOverlap\": true\n      },\n      \"itemStyle\": {\n        \"shadowColor\": \"#00000080\",\n        \"shadowBlur\": 5,\n        \"shadowOffsetX\": 2,\n        \"shadowOffsetY\": -2\n      },\n      \"smooth\": false,\n      \"symbolSize\": 6,\n      \"lineStyle\": {\n        \"width\": 3,\n        \"shadowColor\": \"#00000080\",\n        \"shadowBlur\": 5,\n        \"shadowOffsetX\": 0,\n        \"shadowOffsetY\": 3\n      }\n    }\n  ]\n}"
+      },
+      {
+        "id": 6,
+        "title": "Chi Phí và Lợi Nhuận Gộp Năm 2024",
+        "subtitle": "Thông tin chi tiết chi phí và lợi nhuận gộp",
+        "content": "Năm 2024 FPT ghi nhận:\n- Giá vốn hàng bán: 39.15 nghìn tỷ VNĐ\n- Lợi nhuận gộp: 23.7 nghìn tỷ VNĐ\nTỷ lệ biên lợi nhuận gộp đạt 37.7%, ổn định so với các năm trước.",
+        "style": {
+          "bgColor": "bg-white",
+          "textColor": "text-gray-900",
+          "align": "left"
+        },
+        "widget": {
+          "widget_type": "table",
+          "widget_name": "Chi phí và lợi nhuận gộp FPT 2024",
+          "output_type": "json",
+          "data": {
+            "columns": [
+              "Khoản mục",
+              "Giá trị (tỷ VNĐ)"
+            ],
+            "rows": [
+              [
+                "Giá vốn hàng bán",
+                "39,150"
+              ],
+              [
+                "Lợi nhuận gộp",
+                "23,698"
+              ]
+            ]
+          },
+          "widget_code": {},
+          "image_url": "",
+          "html_content": "",
+          "filename": ""
+        }
+      },
+      {
+        "id": 7,
+        "title": "Lợi Nhuận Thuần Từ Hoạt Động Kinh Doanh Năm 2024",
+        "content": "Lợi nhuận thuần từ hoạt động kinh doanh năm 2024 của FPT đạt 11.03 nghìn tỷ VNĐ, phản ánh hiệu quả hoạt động kinh doanh tích cực.",
+        "style": {
+          "bgColor": "bg-gray-50",
+          "textColor": "text-gray-900",
+          "align": "left"
+        },
+        "widget": {
+          "widget_type": "content",
+          "widget_name": "Lợi nhuận thuần từ hoạt động kinh doanh 2024",
+          "output_type": "json",
+          "data": {},
+          "widget_code": {},
+          "image_url": "",
+          "html_content": "",
+          "filename": ""
+        }
+      },
+      {
+        "id": 8,
+        "title": "Chỉ Số Tài Chính Nổi Bật Năm 2024",
+        "subtitle": "Hiệu quả kinh doanh và khả năng sinh lời",
+        "content": "Một số chỉ số nổi bật năm 2024:\n- ROE (Tỷ suất lợi nhuận trên vốn chủ sở hữu): 23.93%\n- ROS (Tỷ suất lợi nhuận trên doanh thu): 12.5%\n- Tỷ lệ nợ trên vốn chủ sở hữu: 101.5%\n- Biên lợi nhuận EBIT: 18.49%\n- Dòng tiền tự do (FCF): 4.99 nghìn tỷ VNĐ",
+        "style": {
+          "bgColor": "bg-white",
+          "textColor": "text-gray-900",
+          "align": "left"
+        },
+        "widget": {
+          "widget_type": "table",
+          "widget_name": "Chỉ số tài chính FPT 2024",
+          "output_type": "json",
+          "data": {
+            "columns": [
+              "Chỉ số",
+              "Giá trị"
+            ],
+            "rows": [
+              [
+                "ROE",
+                "23.93%"
+              ],
+              [
+                "ROS",
+                "12.5%"
+              ],
+              [
+                "Tỷ lệ nợ/Vốn chủ sở hữu",
+                "101.5%"
+              ],
+              [
+                "Biên lợi nhuận EBIT",
+                "18.49%"
+              ],
+              [
+                "Dòng tiền tự do (FCF)",
+                "4,989 tỷ VNĐ"
+              ]
+            ]
+          },
+          "widget_code": {},
+          "image_url": "",
+          "html_content": "",
+          "filename": ""
+        }
+      },
+      {
+        "id": 9,
+        "title": "Phân Tích Dòng Tiền Và Đầu Tư Năm 2024",
+        "content": "FPT ghi nhận dòng tiền từ hoạt động đầu tư âm 8.46 nghìn tỷ VNĐ, thể hiện đầu tư mạnh mẽ cho phát triển hạ tầng và công nghệ. Chi phí vốn (CAPEX) trong năm là 3.26 nghìn tỷ VNĐ.",
+        "style": {
+          "bgColor": "bg-gray-50",
+          "textColor": "text-gray-900",
+          "align": "left"
+        },
+        "widget": {
+          "widget_type": "content",
+          "widget_name": "Phân tích dòng tiền và đầu tư 2024",
+          "output_type": "json",
+          "data": {},
+          "widget_code": {},
+          "image_url": "",
+          "html_content": "",
+          "filename": ""
+        }
+      },
+      {
+        "id": 10,
+        "title": "Kết Luận và Triển Vọng Kinh Doanh Năm 2024",
+        "content": "FPT tiếp tục duy trì tăng trưởng doanh thu và lợi nhuận mạnh mẽ, hiệu quả quản lý chi phí tốt cùng nguồn vốn và dòng tiền ổn định. Công ty được kỳ vọng tiếp tục phát triển vững chắc, mở rộng đầu tư vào công nghệ và thị trường toàn cầu.",
+        "style": {
+          "bgColor": "bg-white",
+          "textColor": "text-gray-900",
+          "align": "left"
+        },
+        "widget": {
+          "widget_type": "content",
+          "widget_name": "Kết luận báo cáo tài chính FPT 2024",
+          "output_type": "json",
+          "data": {},
+          "widget_code": {},
+          "image_url": "",
+          "html_content": "",
+          "filename": ""
+        }
+      }
+    ],
+    "metadata": {
+      "title": "AI Generated Presentation",
+      "created_at": "2025-10-01T08:15:24.521Z",
+      "prompt": "Báo cáo tài chính FPT năm 2024 với doanh thu và lợi nhuận chi tiết"
+    }
+  }
+}
