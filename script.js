@@ -840,23 +840,6 @@ function renderWidgetContentSlide(slide, index, bgColor, textColor, align) {
     const alignClass = align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left';
     const position = slide.position;
     
-    let contentHtml = '';
-    
-    // Handle different content sources - simplified to use raw HTML
-    if (slide.widget.html_content) {
-        contentHtml = slide.widget.html_content;
-    } else if (slide.content) {
-        // Use content directly as HTML without escaping
-        contentHtml = slide.content;
-    } else if (slide.widget.data && typeof slide.widget.data === 'object') {
-        // Convert data object to readable content
-        contentHtml = `<div class="data-content ${textColor}">
-            ${Object.entries(slide.widget.data).map(([key, value]) => 
-                `<div class="data-item"><strong>${escapeHtml(key)}:</strong> ${escapeHtml(String(value))}</div>`
-            ).join('')}
-        </div>`;
-    }
-    
     return `
         <section class="slide ${bgColor} ${textColor}" 
                  data-x="${position.x}" 
@@ -874,7 +857,7 @@ function renderWidgetContentSlide(slide, index, bgColor, textColor, align) {
                 </div>` : ''}
                 
                 <div class="content-container slideInRight">
-                    ${contentHtml}
+                    ${slide.content || ''}
                 </div>
                 
                 ${slide.button ? `<div class="button-container scaleIn">

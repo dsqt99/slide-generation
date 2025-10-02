@@ -460,7 +460,7 @@
                     </div>
                     <div class="financial-content-grid">
                         <div class="financial-content-block">
-                            ${processFinancialContent(slide.content)}
+                            ${slide.content || ''}
                         </div>
                     </div>
                     ${slide.image ? generateFinancialImageHTML(slide.image, index) : ''}
@@ -473,24 +473,6 @@
             const alignClass = slide.style?.align === 'center' ? 'text-center' : 
                               slide.style?.align === 'right' ? 'text-right' : 'text-left';
             
-            let contentHtml = '';
-            
-            // Handle different content sources
-            if (slide.content) {
-                contentHtml = `<div class="financial-text-line">${slide.content}</div>`;
-            } else if (slide.widget.html_content) {
-                contentHtml = slide.widget.html_content;
-            } else if (slide.widget.data && typeof slide.widget.data === 'object') {
-                // Convert data object to readable content
-                contentHtml = `<div class="financial-content-grid">
-                    ${Object.entries(slide.widget.data).map(([key, value]) => 
-                        `<div class="financial-content-block">
-                            <strong class="financial-highlight">${key}:</strong> ${value}
-                        </div>`
-                    ).join('')}
-                </div>`;
-            }
-            
             return `
                 <div class="financial-slide-content ${alignClass}">
                     ${slide.title ? `<h2 class="financial-slide-title">${slide.title}</h2>` : ''}
@@ -499,7 +481,7 @@
                     ${slide.image ? generateFinancialImageHTML(slide.image, index) : ''}
                     
                     <div class="financial-content-container">
-                        ${contentHtml}
+                        ${slide.content || ''}
                     </div>
                     
                     ${slide.button ? `<div class="financial-button-container">
@@ -670,17 +652,7 @@
             `;
         }
 
-        // Process financial content
-        function processFinancialContent(content) {
-            if (!content) return '';
-            
-            // Convert HTML content and add financial classes
-            let processedContent = content.replace(/<li>/g, '<li class="financial-text-line">');
-            processedContent = processedContent.replace(/<p>/g, '<p class="financial-text-line">');
-            processedContent = processedContent.replace(/<b>/g, '<b class="financial-highlight">');
-            
-            return processedContent;
-        }
+
 
         // Generate financial table
         function generateFinancialTable(tableData) {
