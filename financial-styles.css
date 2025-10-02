@@ -75,43 +75,67 @@ body {
   transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Subtle Slide Transition Animations */
+/* Clean Slide Transition without Blur */
+.reveal .slides section {
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: center center;
+  backface-visibility: hidden;
+}
+
 .reveal .slides section.past {
-  transform: translateX(-100%) scale(0.95);
-  opacity: 0.8;
-  filter: blur(1px);
+  transform: scale(0.95) translateX(-50px);
+  opacity: 0.6;
+  z-index: 1;
 }
 
 .reveal .slides section.future {
-  transform: translateX(100%) scale(0.95);
-  opacity: 0.8;
-  filter: blur(1px);
+  transform: scale(0.95) translateX(50px);
+  opacity: 0.6;
+  z-index: 1;
 }
 
 .reveal .slides section.present {
-  transform: translateX(0) scale(1);
+  transform: scale(1) translateX(0);
   opacity: 1;
-  filter: blur(0);
+  z-index: 10;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 /* Smooth Element Entrance Animations */
-.reveal .slides section.present .slide-title {
-  animation: slideInFromTop 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+/* Enhanced Element Entrance Animations with Staggered Timing */
+.reveal .slides section.present .slide-title,
+.reveal .slides section.present .financial-slide-title {
+  animation: slideInFromTop 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) 0.1s both;
 }
 
-.reveal .slides section.present .slide-content {
-  animation: slideInFromBottom 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s both;
+.reveal .slides section.present .slide-subtitle,
+.reveal .slides section.present .financial-slide-subtitle {
+  animation: slideInFromTop 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) 0.2s both;
 }
 
-.reveal .slides section.present .chart-container {
-  animation: scaleInSmooth 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s both;
+.reveal .slides section.present .slide-content,
+.reveal .slides section.present .financial-slide-content {
+  animation: slideInFromBottom 1s cubic-bezier(0.165, 0.84, 0.44, 1) 0.3s both;
+}
+
+.reveal .slides section.present .chart-container,
+.reveal .slides section.present .financial-chart {
+  animation: scaleInSmooth 1.2s cubic-bezier(0.165, 0.84, 0.44, 1) 0.5s both;
 }
 
 .reveal .slides section.present .financial-metric {
-  animation: fadeInUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s both;
+  animation: fadeInUp 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) 0.4s both;
 }
 
-/* Keyframes for Subtle Animations */
+.reveal .slides section.present .financial-table-element {
+  animation: slideInFromBottom 1s cubic-bezier(0.165, 0.84, 0.44, 1) 0.6s both;
+}
+
+.reveal .slides section.present .financial-button-container {
+  animation: fadeInUp 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) 0.8s both;
+}
+
+/* Clean Keyframes without Blur Effects */
 @keyframes slideInFromTop {
   0% {
     transform: translateY(-30px);
@@ -873,18 +897,11 @@ body {
 @keyframes slide-enter-financial {
   0% {
     opacity: 0;
-    transform: perspective(2000px) rotateX(-90deg) scale(0.8);
-    filter: blur(20px);
-  }
-  50% {
-    opacity: 0.7;
-    transform: perspective(2000px) rotateX(-45deg) scale(0.9);
-    filter: blur(10px);
+    transform: translateY(20px) scale(0.95);
   }
   100% {
     opacity: 1;
-    transform: perspective(2000px) rotateX(0) scale(1);
-    filter: blur(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -895,18 +912,11 @@ body {
 @keyframes slide-exit-financial {
   0% {
     opacity: 1;
-    transform: perspective(2000px) rotateX(0) scale(1);
-    filter: blur(0);
-  }
-  50% {
-    opacity: 0.7;
-    transform: perspective(2000px) rotateX(45deg) scale(0.9);
-    filter: blur(10px);
+    transform: translateY(0) scale(1);
   }
   100% {
     opacity: 0;
-    transform: perspective(2000px) rotateX(90deg) scale(0.8);
-    filter: blur(20px);
+    transform: translateY(-20px) scale(0.95);
   }
 }
 

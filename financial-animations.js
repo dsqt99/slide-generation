@@ -55,11 +55,11 @@ class FinancialAnimationManager {
       @keyframes chart-entrance {
         0% {
           opacity: 0;
-          transform: translateY(50px) rotateX(15deg);
+          transform: translateY(30px) scale(0.95);
         }
         100% {
           opacity: 1;
-          transform: translateY(0) rotateX(0);
+          transform: translateY(0) scale(1);
         }
       }
 
@@ -205,12 +205,12 @@ class FinancialAnimationManager {
 
     // Add chart entrance animation
     chartElement.style.opacity = '0';
-    chartElement.style.transform = 'translateY(50px) rotateX(15deg)';
+    chartElement.style.transform = 'translateY(30px) scale(0.95)';
     
     setTimeout(() => {
       chartElement.style.transition = 'all 1s cubic-bezier(0.23, 1, 0.320, 1)';
       chartElement.style.opacity = '1';
-      chartElement.style.transform = 'translateY(0) rotateX(0)';
+      chartElement.style.transform = 'translateY(0) scale(1)';
     }, 100);
 
     // Add shine effect

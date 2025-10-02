@@ -476,10 +476,10 @@
             let contentHtml = '';
             
             // Handle different content sources
-            if (slide.widget.html_content) {
-                contentHtml = slide.widget.html_content;
-            } else if (slide.content) {
+            if (slide.content) {
                 contentHtml = `<div class="financial-text-line">${slide.content}</div>`;
+            } else if (slide.widget.html_content) {
+                contentHtml = slide.widget.html_content;
             } else if (slide.widget.data && typeof slide.widget.data === 'object') {
                 // Convert data object to readable content
                 contentHtml = `<div class="financial-content-grid">
@@ -744,9 +744,13 @@
                 controls: false,
                 progress: false,
                 center: false, // Disable centering to use full screen
-                transition: 'slide', // Smooth slide transition
-                transitionSpeed: 'slow', // Slower for more elegant feel
-                backgroundTransition: 'fade',
+                transition: 'slide', // Clean slide transition without blur
+                transitionSpeed: 'default', // Balanced speed for smooth feel
+                backgroundTransition: 'slide',
+                parallaxBackgroundImage: '',
+                parallaxBackgroundSize: '',
+                parallaxBackgroundHorizontal: null,
+                parallaxBackgroundVertical: null,
                 
                 // Full Screen Configuration
                 width: '100%',
