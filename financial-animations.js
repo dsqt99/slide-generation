@@ -7,130 +7,19 @@ class FinancialAnimationManager {
   constructor() {
     this.isAnimating = false;
     this.slideTransitionDuration = 800;
-    this.touchStartX = 0;
-    this.touchEndX = 0;
-    this.minSwipeDistance = 50;
     this.init();
   }
 
   init() {
-    this.initSwipeNavigation();
     this.initSmoothTransitions();
     this.initScrollEffects();
     this.initChartAnimations();
     this.initPerformanceOptimization();
   }
 
-  // Swipe Navigation for Mobile
-  initSwipeNavigation() {
-    document.addEventListener('touchstart', (e) => {
-      this.touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
 
-    document.addEventListener('touchend', (e) => {
-      this.touchEndX = e.changedTouches[0].screenX;
-      this.handleSwipe();
-    }, { passive: true });
 
-    // Mouse swipe for desktop
-    let mouseDown = false;
-    let mouseStartX = 0;
 
-    document.addEventListener('mousedown', (e) => {
-      mouseDown = true;
-      mouseStartX = e.screenX;
-    });
-
-    document.addEventListener('mouseup', (e) => {
-      if (mouseDown) {
-        const mouseEndX = e.screenX;
-        const distance = mouseEndX - mouseStartX;
-        
-        if (Math.abs(distance) > this.minSwipeDistance) {
-          if (distance > 0) {
-            this.navigatePrevious();
-          } else {
-            this.navigateNext();
-          }
-        }
-      }
-      mouseDown = false;
-    });
-
-    document.addEventListener('mouseleave', () => {
-      mouseDown = false;
-    });
-  }
-
-  handleSwipe() {
-    const distance = this.touchEndX - this.touchStartX;
-    
-    if (Math.abs(distance) > this.minSwipeDistance) {
-      if (distance > 0) {
-        this.navigatePrevious();
-      } else {
-        this.navigateNext();
-      }
-    }
-  }
-
-  navigateNext() {
-    if (typeof Reveal !== 'undefined' && !this.isAnimating) {
-      this.isAnimating = true;
-      this.playTransitionSound();
-      this.showSwipeIndicator('next');
-      
-      setTimeout(() => {
-        Reveal.next();
-        this.isAnimating = false;
-      }, 200);
-    }
-  }
-
-  navigatePrevious() {
-    if (typeof Reveal !== 'undefined' && !this.isAnimating) {
-      this.isAnimating = true;
-      this.playTransitionSound();
-      this.showSwipeIndicator('prev');
-      
-      setTimeout(() => {
-        Reveal.prev();
-        this.isAnimating = false;
-      }, 200);
-    }
-  }
-
-  showSwipeIndicator(direction) {
-    const indicator = document.createElement('div');
-    indicator.className = `swipe-indicator-${direction}`;
-    indicator.style.cssText = `
-      position: fixed;
-      top: 50%;
-      ${direction === 'next' ? 'right' : 'left'}: 2rem;
-      transform: translateY(-50%);
-      background: rgba(30, 58, 138, 0.9);
-      color: white;
-      padding: 1rem;
-      border-radius: 50%;
-      font-size: 1.5rem;
-      z-index: 1000;
-      animation: swipe-indicator-anim 0.5s ease-out forwards;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    `;
-    
-    indicator.innerHTML = direction === 'next' ? 
-      '<i class="fas fa-chevron-right"></i>' : 
-      '<i class="fas fa-chevron-left"></i>';
-    
-    document.body.appendChild(indicator);
-    
-    setTimeout(() => {
-      if (document.body.contains(indicator)) {
-        document.body.removeChild(indicator);
-      }
-    }, 1000);
-  }
 
   // Smooth Transitions
   initSmoothTransitions() {

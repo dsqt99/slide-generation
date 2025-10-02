@@ -16,7 +16,7 @@ Tạo presentation chuyên nghiệp với AI chỉ trong vài giây!
 
 ### 1. Khởi động server
 ```bash
-python server.py
+python -m http.server 8001 
 ```
 
 ### 2. Truy cập trang chủ

@@ -4,6 +4,7 @@ import socketserver
 import json
 import os
 import urllib.parse
+import socket
 from pathlib import Path
 
 class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
@@ -432,11 +433,26 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
 
+def get_local_ip():
+    """Get the local IP address of this machine"""
+    try:
+        # Connect to a remote address to determine local IP
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("8.8.8.8", 80))
+            return s.getsockname()[0]
+    except Exception:
+        return "localhost"
+
 if __name__ == "__main__":
     PORT = 8001
+    HOST = "0.0.0.0"  # Bind to all network interfaces
     
-    with socketserver.TCPServer(("", PORT), CustomHTTPRequestHandler) as httpd:
+    # Get local IP address
+    local_ip = get_local_ip()
+    
+    with socketserver.TCPServer((HOST, PORT), CustomHTTPRequestHandler) as httpd:
         print(f"Server running at http://localhost:{PORT}")
+        print(f"Also accessible from other devices at http://{local_ip}:{PORT}")
         print("Press Ctrl+C to stop the server")
         try:
             httpd.serve_forever()

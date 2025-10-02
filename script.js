@@ -15,248 +15,7 @@ const PREVIEW_URL = 'http://localhost:8001/preview-slide.html';
 // State Management
 let isGenerating = false;
 
-// Chart Converter Class - JavaScript equivalent of Python ChartConverter
-class ChartConverter {
-    constructor() {
-        this.jsFunctionPattern = /"__js_function__"\s*:\s*true/;
-    }
 
-    /**
-     * Convert objects to native JavaScript objects
-     */
-    toNative(obj) {
-        try {
-            // Handle objects
-            if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
-                const result = {};
-                for (const [key, value] of Object.entries(obj)) {
-                    try {
-                        result[this.toNative(key)] = this.toNative(value);
-                    } catch (e) {
-                        console.warn(`Failed to convert key-value pair ${key}:`, e);
-                        result[String(key)] = value !== null ? String(value) : null;
-                    }
-                }
-                return result;
-            }
-            
-            // Handle arrays
-            else if (Array.isArray(obj)) {
-                return obj.map(item => {
-                    try {
-                        return this.toNative(item);
-                    } catch (e) {
-                        console.warn('Failed to convert array item:', e);
-                        return item !== null ? String(item) : null;
-                    }
-                });
-            }
-            
-            // Handle primitive types
-            else if (typeof obj === 'string' || typeof obj === 'number' || 
-                     typeof obj === 'boolean' || obj === null || obj === undefined) {
-                return obj;
-            }
-            
-            // Fallback for unknown types
-            else {
-                return String(obj);
-            }
-        } catch (e) {
-            console.error('Error in toNative conversion:', e);
-            return obj !== null ? String(obj) : null;
-        }
-    }
-
-    /**
-     * Process JavaScript functions in chart configuration
-     */
-    processJsFunctions(obj) {
-        if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
-            const result = {};
-            for (const [key, value] of Object.entries(obj)) {
-                if (typeof value === 'object' && value !== null &&
-                    value.__js_function__ === true && 'value' in value) {
-                    // Keep the JavaScript function structure for frontend processing
-                    result[key] = {
-                        __js_function__: true,
-                        value: this.cleanJsFunction(value.value)
-                    };
-                } else {
-                    result[key] = this.processJsFunctions(value);
-                }
-            }
-            return result;
-        } else if (Array.isArray(obj)) {
-            return obj.map(item => this.processJsFunctions(item));
-        } else {
-            return obj;
-        }
-    }
-
-    /**
-     * Clean and format JavaScript function code
-     */
-    cleanJsFunction(jsCode) {
-        if (typeof jsCode !== 'string') {
-            return String(jsCode);
-        }
-        
-        // Remove extra escaping
-        let cleaned = jsCode.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\'/g, "'");
-        
-        // Remove leading/trailing whitespace
-        cleaned = cleaned.trim();
-        
-        return cleaned;
-    }
-
-    /**
-     * Check if object is an ECharts configuration
-     */
-    isEchartsConfig(obj) {
-        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
-            return false;
-        }
-        
-        const echartsProperties = [
-            'backgroundColor', 'color', 'title', 'legend', 'tooltip',
-            'grid', 'xAxis', 'yAxis', 'series', 'graphic', 'animation'
-        ];
-        
-        const foundProperties = echartsProperties.filter(prop => prop in obj);
-        return foundProperties.length >= 2;
-    }
-
-    /**
-     * Convert chart data to slide format
-     */
-    convertChartToSlideFormat(chartData) {
-        const processedData = this.processJsFunctions(this.toNative(chartData));
-        
-        return {
-            widget_type: "chart",
-            widget_name: "ECharts Visualization",
-            output_type: "chart",
-            data: processedData.data || {},
-            widget_code: processedData,
-            image_url: null,
-            html_content: null,
-            filename: null
-        };
-    }
-
-    /**
-     * Create slide from chart data
-     */
-    createSlideFromChart(chartData, slideId = null) {
-        const widget = this.convertChartToSlideFormat(chartData);
-        
-        return {
-            id: slideId || `slide_${Date.now()}`,
-            title: chartData.title?.text || "Chart Slide",
-            subtitle: chartData.title?.subtext || "Generated from chart",
-            content: "",
-            style: {
-                bgColor: "bg-white",
-                textColor: "text-gray-800",
-                align: "center"
-            },
-            widget: widget
-        };
-    }
-
-    /**
-     * Convert chart.json to slides format
-     */
-    async convertChartJsonToSlides(chartJsonPath) {
-        try {
-            const response = await fetch(chartJsonPath);
-            if (!response.ok) {
-                throw new Error(`Failed to load ${chartJsonPath}: ${response.statusText}`);
-            }
-            
-            const rawChart = await response.json();
-            const chartData = this.toNative(rawChart);
-            
-            let slides = [];
-            
-            // Handle different data structures
-            if (Array.isArray(chartData)) {
-                // Array of charts
-                chartData.forEach((chart, index) => {
-                    const slide = this.createSlideFromChart(chart, `slide_${index + 1}`);
-                    slides.push(slide);
-                });
-            } else if (this.isEchartsConfig(chartData)) {
-                // Single ECharts configuration
-                const slide = this.createSlideFromChart(chartData, 'slide_1');
-                slides.push(slide);
-            } else if (typeof chartData === 'object' && chartData !== null) {
-                // Single chart object
-                const slide = this.createSlideFromChart(chartData, 'slide_1');
-                slides.push(slide);
-            } else {
-                throw new Error('Invalid chart data format');
-            }
-            
-            const slideData = {
-                slide_data: {
-                    title: "Chart Presentation",
-                    subtitle: "Generated from chart.json",
-                    slides: slides
-                }
-            };
-            
-            console.log(`✅ Converted ${slides.length} slide(s) from chart data`);
-            return slideData;
-            
-        } catch (error) {
-            console.error('Error converting chart JSON to slides:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Validate slide data structure
-     */
-    validateSlideData(slideData) {
-        try {
-            if (!slideData || typeof slideData !== 'object') {
-                console.error('Slide data must be an object');
-                return false;
-            }
-            
-            const slides = slideData.slide_data?.slides || slideData.slides || [];
-            if (!Array.isArray(slides)) {
-                console.error('Slides must be an array');
-                return false;
-            }
-            
-            for (const slide of slides) {
-                if (!slide.id || !slide.title) {
-                    console.error('Each slide must have id and title');
-                    return false;
-                }
-                
-                if (slide.widget && slide.widget.widget_type === 'chart') {
-                    if (!slide.widget.widget_code || typeof slide.widget.widget_code !== 'object') {
-                        console.error('Chart slides must have valid widget_code');
-                        return false;
-                    }
-                }
-            }
-            
-            return true;
-        } catch (error) {
-            console.error('Error validating slide data:', error);
-            return false;
-        }
-    }
-}
-
-// Initialize chart converter
-const chartConverter = new ChartConverter();
 
 // Initialize event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -270,123 +29,6 @@ function initializeEventListeners() {
     }
     if (generateBtn) {
         generateBtn.addEventListener('click', handleFormSubmit);
-    }
-    
-    // Add test button for debugging
-    const testBtn = document.createElement('button');
-    testBtn.textContent = 'Test với dữ liệu có sẵn';
-    testBtn.className = 'generate-btn';
-    testBtn.style.marginTop = '10px';
-    testBtn.style.backgroundColor = '#28a745';
-    testBtn.type = 'button'; // Prevent form submission
-    testBtn.onclick = testWithExistingData;
-    
-    // Add button after the form
-    if (generateBtn && generateBtn.parentNode && generateBtn.parentNode.parentNode) {
-        const formContainer = generateBtn.parentNode.parentNode;
-        formContainer.appendChild(testBtn);
-    }
-}
-
-// Test function using existing slide data
-async function testWithExistingData() {
-    try {
-        showLoading();
-        
-        // Load existing slide data from multiple sources
-        let slideData = null;
-        
-        // Try to load from localStorage first
-        const localStorageData = localStorage.getItem('slideData');
-        if (localStorageData) {
-            slideData = JSON.parse(localStorageData);
-            console.log('Loaded slide data from localStorage');
-        } else {
-            // Try to load from server
-            try {
-                const response = await fetch('/logs/slide.json');
-                if (response.ok) {
-                    slideData = await response.json();
-                    console.log('Loaded slide data from server');
-                }
-            } catch (serverError) {
-                console.log('Could not load from server, trying default data');
-            }
-        }
-        
-        // If no data found, use default sample data
-        if (!slideData) {
-            slideData = {
-                "title": "Báo cáo Tài chính Quý 4/2024",
-                "subtitle": "Tổng quan hiệu suất kinh doanh và chiến lược phát triển",
-                "slides": [
-                    {
-                        "type": "title",
-                        "title": "Báo cáo Tài chính Quý 4/2024",
-                        "subtitle": "Tổng quan hiệu suất kinh doanh và chiến lược phát triển",
-                        "content": "Công ty Cổ phần Công nghệ FireAnt trình bày báo cáo tài chính quý 4 năm 2024 với kết quả kinh doanh vượt trội và chiến lược phát triển bền vững."
-                    },
-                    {
-                        "type": "content",
-                        "title": "Tổng quan Kết quả Kinh doanh",
-                        "subtitle": "Đạt được nhiều bước tiến quan trọng",
-                        "content": "<ul><li>Doanh thu quý 4 đạt <b>150 tỷ đồng</b>, tăng 25% so với cùng kỳ</li><li>Lợi nhuận sau thuế đạt <b>25 tỷ đồng</b>, vượt 15% kế hoạch</li><li>Tỷ suất lợi nhuận gộp cải thiện lên <b>35%</b></li></ul>"
-                    },
-                    {
-                        "type": "chart",
-                        "title": "Phân tích Doanh thu theo Quý",
-                        "subtitle": "Tăng trưởng ổn định qua các quý",
-                        "chart_type": "line",
-                        "chart_data": {
-                            "labels": ["Quý 1", "Quý 2", "Quý 3", "Quý 4"],
-                            "datasets": [{
-                                "label": "Doanh thu (tỷ đồng)",
-                                "data": [120, 135, 145, 150],
-                                "borderColor": "#3b82f6",
-                                "backgroundColor": "rgba(59, 130, 246, 0.1)"
-                            }]
-                        }
-                    }
-                ]
-            };
-            console.log('Using default sample data');
-        }
-        
-        console.log('Slide data:', slideData);
-        
-        // Generate HTML template from JSON
-        const htmlContent = generateRevealJsHtmlFromJson(slideData);
-        
-        // Try to open in new window first
-        try {
-            const newWindow = window.open('', '_blank');
-            if (newWindow) {
-                newWindow.document.write(htmlContent);
-                newWindow.document.close();
-                hideLoading();
-                return;
-            }
-        } catch (windowError) {
-            console.log('Could not open in new window, trying download');
-        }
-        
-        // Fallback to download
-        const blob = new Blob([htmlContent], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'preview-slide.html';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        hideLoading();
-
-    } catch (error) {
-        hideLoading();
-        console.error('Error in testWithExistingData:', error);
-        showError('Lỗi khi test với dữ liệu có sẵn: ' + error.message);
     }
 }
 
@@ -502,6 +144,9 @@ function generateRevealJsHtmlFromJson(slideData) {
     <!-- Chart Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"><\/script>
+    
+    <!-- D3.js for Graph Visualization -->
+    <script src="https://d3js.org/d3.v7.min.js"><\/script>
     
     <!-- Custom Configuration -->
     <script>
@@ -1029,17 +674,12 @@ function generateRevealJsHtmlFromJson(slideData) {
                             return renderWidgetChartSlide(slide, index, bgColor, textColor, align);
                         case 'table':
                             return renderWidgetTableSlide(slide, index, bgColor, textColor, align);
+                        case 'graph':
+                            return renderWidgetGraphSlide(slide, index, bgColor, textColor, align);
                         case 'content':
                         default:
                             return renderWidgetContentSlide(slide, index, bgColor, textColor, align);
                     }
-                }
-                
-                // Legacy support for old format
-                if (slide.type === 'chart' && slide.chart_data) {
-                    return renderChartSlide(slide, index, bgColor);
-                } else {
-                    return renderContentSlide(slide, index, bgColor);
                 }
             }).join('')}
         </div>
@@ -1071,10 +711,8 @@ function generateRevealJsHtmlFromJson(slideData) {
                 // Handle new widget format
                 if (slide.widget && slide.widget.widget_type === 'chart') {
                     return generateWidgetChartScript(slide, index);
-                }
-                // Legacy support for old format
-                if (slide.type === 'chart' && slide.chart_data) {
-                    return generateChartScript(slide, index);
+                } else if (slide.widget && slide.widget.widget_type === 'graph') {
+                    return generateWidgetGraphScript(slide, index);
                 }
                 return '';
             }).filter(script => script).join('\n')}
@@ -1082,463 +720,6 @@ function generateRevealJsHtmlFromJson(slideData) {
     <\\/script>
 </body>
 </html>`;
-}
-
-// Render content slide with professional design
-function renderContentSlide(slide, index, gradientClass) {
-    let contentHtml;
-    
-    // Check if content is HTML string with <ul> or <li> tags
-    if (slide.content && slide.content.includes('<ul>')) {
-        // Parse HTML content and convert to bullet points
-        contentHtml = `
-            <div class="space-y-6 animate-slide-up">
-                ${slide.content.replace(/<ul>/g, '<div class="space-y-4">')
-                              .replace(/<\/ul>/g, '</div>')
-                              .replace(/<li>(.*?)<\/li>/g, '<div class="bullet-point flex items-start space-x-3 hover-lift"><div class="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0 animate-pulse"></div><span class="text-xl leading-relaxed text-gray-700">$1</span></div>')
-                              .replace(/<b>(.*?)<\/b>/g, '<strong class="font-bold text-gray-800">$1</strong>')
-                              .replace(/<p>(.*?)<\/p>/g, '<p class="text-xl leading-relaxed text-gray-700 mb-4">$1</p>')}
-            </div>
-        `;
-    } else if (Array.isArray(slide.content)) {
-        contentHtml = `
-            <div class="space-y-6 animate-slide-up">
-                ${slide.content.map((item, i) => `
-                    <div class="bullet-point flex items-start space-x-3 hover-lift animate-delay-${i + 1}" style="animation-delay: ${0.6 + i * 0.2}s">
-                        <div class="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0 animate-pulse"></div>
-                        <span class="text-xl leading-relaxed text-gray-700">${escapeHtml(item)}</span>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    } else {
-        contentHtml = `<div class="text-xl leading-relaxed text-gray-700 animate-slide-up">${escapeHtml(slide.content || '')}</div>`;
-    }
-
-    return `
-        <section class="${gradientClass} relative overflow-hidden" 
-                 data-background-gradient="${gradientClass}" 
-                 data-transition="slide"
-                 style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 4rem;">
-            
-            <!-- Animated background elements -->
-            <div class="absolute inset-0 opacity-10">
-                <div class="absolute top-10 left-10 w-20 h-20 bg-white rounded-full animate-pulse"></div>
-                <div class="absolute top-40 right-20 w-16 h-16 bg-white rounded-full animate-bounce"></div>
-                <div class="absolute bottom-20 left-20 w-12 h-12 bg-white rounded-full animate-ping"></div>
-                <div class="absolute bottom-40 right-10 w-24 h-24 bg-white rounded-full animate-pulse"></div>
-            </div>
-            
-            <div class="slide-content relative z-10" style="max-width: 64rem; width: 100%;">
-                <div class="text-center mb-8">
-                    <h1 class="slide-title text-5xl font-black mb-4 animate-bounce-in" style="animation-delay: 0.2s;">
-                        ${escapeHtml(slide.title || '')}
-                    </h1>
-                    ${slide.subtitle ? `<h2 class="text-2xl font-semibold text-white opacity-90 animate-slide-up" style="animation-delay: 0.4s;">${escapeHtml(slide.subtitle)}</h2>` : ''}
-                </div>
-                
-                <div class="glass-effect rounded-3xl p-8 backdrop-blur-lg">
-                    ${contentHtml}
-                    
-                    ${slide.key_points ? `
-                        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            ${slide.key_points.map((point, i) => `
-                                <div class="data-card hover-lift animate-delay-${i + 1}" style="animation-delay: ${1 + i * 0.2}s">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                                            ${i + 1}
-                                        </div>
-                                        <span class="font-medium text-gray-700">${escapeHtml(point)}</span>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-                
-                ${slide.notes ? `
-                    <div class="mt-6 text-center">
-                        <p class="text-sm text-white opacity-80 animate-fade-in" style="animation-delay: 1.5s;">
-                            <i class="fas fa-lightbulb mr-2"></i>${escapeHtml(slide.notes)}
-                        </p>
-                    </div>
-                ` : ''}
-            </div>
-        </section>
-    `;
-}
-
-// Render chart slide with ECharts integration
-function renderChartSlide(slide, index, gradientClass) {
-    const chartId = `chart-${index}`;
-    const echartId = `echart-${index}`;
-    
-    return `
-        <section class="${gradientClass} relative overflow-hidden" 
-                 data-background-gradient="${gradientClass}" 
-                 data-transition="slide"
-                 style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 4rem;">
-            
-            <!-- Animated background elements -->
-            <div class="absolute inset-0 opacity-10">
-                <div class="absolute top-10 left-10 w-20 h-20 bg-white rounded-full animate-pulse"></div>
-                <div class="absolute top-40 right-20 w-16 h-16 bg-white rounded-full animate-bounce"></div>
-                <div class="absolute bottom-20 left-20 w-12 h-12 bg-white rounded-full animate-ping"></div>
-                <div class="absolute bottom-40 right-10 w-24 h-24 bg-white rounded-full animate-pulse"></div>
-            </div>
-            
-            <div class="slide-content relative z-10" style="max-width: 80rem; width: 100%;">
-                <div class="text-center mb-8">
-                    <h1 class="slide-title text-5xl font-black mb-4 animate-bounce-in" style="animation-delay: 0.2s;">
-                        ${escapeHtml(slide.title || '')}
-                    </h1>
-                    ${slide.subtitle ? `<h2 class="text-2xl font-semibold text-white opacity-90 animate-slide-up" style="animation-delay: 0.4s;">${escapeHtml(slide.subtitle)}</h2>` : ''}
-                </div>
-                
-                <div class="glass-effect rounded-3xl p-8 backdrop-blur-lg">
-                    <!-- Chart Container with multiple chart types -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                        <!-- Chart.js Chart -->
-                        <div class="data-card hover-lift animate-scale-in" style="animation-delay: 0.6s;">
-                            <h3 class="text-lg font-semibold mb-4 text-center text-gray-700">
-                                <i class="fas fa-chart-bar mr-2 text-blue-500"></i>Biểu đồ dữ liệu
-                            </h3>
-                            <div class="chart-container">
-                                <canvas id="${chartId}" width="400" height="300"></canvas>
-                            </div>
-                        </div>
-                        
-                        <!-- ECharts Chart -->
-                        <div class="data-card hover-lift animate-scale-in echart-container" style="animation-delay: 0.8s;">
-                            <h3 class="text-lg font-semibold mb-4 text-center text-gray-700">
-                                <i class="fas fa-chart-line mr-2 text-green-500"></i>Phân tích xu hướng
-                            </h3>
-                            <div id="${echartId}" class="chart-container"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Interactive Data Cards -->
-                    ${slide.chart_data && slide.chart_data.metrics ? `
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                            ${slide.chart_data.metrics.map((metric, i) => `
-                                <div class="data-card text-center hover-lift animate-delay-${i + 1}" style="animation-delay: ${1 + i * 0.1}s">
-                                    <div class="metric-large text-gradient">${escapeHtml(metric.value)}</div>
-                                    <div class="metric-label">${escapeHtml(metric.label)}</div>
-                                    ${metric.trend ? `
-                                        <div class="trend-indicator ${metric.trend > 0 ? 'trend-up' : 'trend-down'} mt-2">
-                                            <i class="fas fa-arrow-${metric.trend > 0 ? 'up' : 'down'}"></i>
-                                            ${Math.abs(metric.trend)}%
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                    
-                    <!-- Progress Indicators -->
-                    ${slide.chart_data && slide.chart_data.progress ? `
-                        <div class="space-y-4">
-                            ${slide.chart_data.progress.map((item, i) => `
-                                <div class="animate-delay-${i + 1}" style="animation-delay: ${1.5 + i * 0.1}s">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <span class="font-medium text-gray-700">${escapeHtml(item.name)}</span>
-                                        <span class="text-sm font-semibold text-blue-600">${item.value}%</span>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: ${item.value}%"></div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-                
-                ${slide.notes ? `
-                    <div class="mt-6 text-center">
-                        <p class="text-sm text-white opacity-80 animate-fade-in" style="animation-delay: 2s;">
-                            <i class="fas fa-info-circle mr-2"></i>${escapeHtml(slide.notes)}
-                        </p>
-                    </div>
-                ` : ''}
-            </div>
-        </section>
-    `;
-}
-
-// Generate chart script with both Chart.js and ECharts integration
-function generateChartScript(slide, index) {
-    const chartId = `chart-${index}`;
-    const echartId = `echart-${index}`;
-    const chartData = slide.chart_data;
-    
-    return `
-        try {
-            // Chart.js Chart
-            const ctx${index} = document.getElementById('${chartId}');
-            if (ctx${index}) {
-                new Chart(ctx${index}, {
-                    type: '${chartData.type || 'bar'}',
-                    data: ${JSON.stringify(chartData.data || {
-                        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-                        datasets: [{
-                            label: 'Doanh thu',
-                            data: [120000, 190000, 300000, 500000],
-                            backgroundColor: [
-                                'rgba(59, 130, 246, 0.8)',
-                                'rgba(16, 185, 129, 0.8)',
-                                'rgba(139, 92, 246, 0.8)',
-                                'rgba(245, 158, 11, 0.8)'
-                            ],
-                            borderColor: [
-                                'rgba(59, 130, 246, 1)',
-                                'rgba(16, 185, 129, 1)',
-                                'rgba(139, 92, 246, 1)',
-                                'rgba(245, 158, 11, 1)'
-                            ],
-                            borderWidth: 2
-                        }]
-                    })},
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: {
-                                    font: {
-                                        family: 'Inter',
-                                        size: 14
-                                    }
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: '${escapeHtml(chartData.title || slide.title || 'Biểu đồ dữ liệu')}',
-                                font: {
-                                    family: 'Inter',
-                                    size: 16,
-                                    weight: 'bold'
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
-                                },
-                                ticks: {
-                                    font: {
-                                        family: 'Inter'
-                                    }
-                                }
-                            },
-                            x: {
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
-                                },
-                                ticks: {
-                                    font: {
-                                        family: 'Inter'
-                                    }
-                                }
-                            }
-                        },
-                        animation: {
-                            duration: 2000,
-                            easing: 'easeInOutQuart'
-                        }
-                    }
-                });
-            }
-
-            // ECharts Integration
-            const echartContainer${index} = document.getElementById('${echartId}');
-            if (echartContainer${index}) {
-                const myChart${index} = echarts.init(echartContainer${index});
-                
-                // Sample ECharts options - can be customized based on chartData
-                const option${index} = {
-                    title: {
-                        text: '${escapeHtml(chartData.title || 'Phân tích xu hướng')}',
-                        subtext: '${escapeHtml(chartData.subtitle || 'Dữ liệu tài chính')}',
-                        left: 'center',
-                        textStyle: {
-                            fontFamily: 'Inter',
-                            fontSize: 16,
-                            fontWeight: 'bold',
-                            color: '#1f2937'
-                        },
-                        subtextStyle: {
-                            fontFamily: 'Inter',
-                            fontSize: 12,
-                            color: '#6b7280'
-                        }
-                    },
-                    tooltip: {
-                        trigger: 'axis',
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        borderColor: '#e5e7eb',
-                        borderWidth: 1,
-                        textStyle: {
-                            fontFamily: 'Inter',
-                            color: '#374151'
-                        },
-                        formatter: function(params) {
-                            let result = '<div style="padding: 10px;">';
-                            result += '<div style="font-weight: bold; margin-bottom: 5px;">' + params[0].name + '</div>';
-                            params.forEach(function(item) {
-                                result += '<div style="margin: 3px 0;">';
-                                result += '<span style="display: inline-block; width: 10px; height: 10px; background-color: ' + item.color + '; margin-right: 5px; border-radius: 50%;"></span>';
-                                result += item.seriesName + ': ' + item.value.toLocaleString() + ' VNĐ';
-                                result += '</div>';
-                            });
-                            result += '</div>';
-                            return result;
-                        }
-                    },
-                    legend: {
-                        data: ['Doanh thu', 'Lợi nhuận', 'Chi phí'],
-                        bottom: 10,
-                        textStyle: {
-                            fontFamily: 'Inter'
-                        }
-                    },
-                    grid: {
-                        left: '3%',
-                        right: '4%',
-                        bottom: '15%',
-                        containLabel: true,
-                        backgroundColor: 'transparent'
-                    },
-                    xAxis: {
-                        type: 'category',
-                        data: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
-                        axisLine: {
-                            lineStyle: {
-                                color: '#e5e7eb'
-                            }
-                        },
-                        axisLabel: {
-                            fontFamily: 'Inter',
-                            color: '#6b7280'
-                        }
-                    },
-                    yAxis: {
-                        type: 'value',
-                        axisLine: {
-                            lineStyle: {
-                                color: '#e5e7eb'
-                            }
-                        },
-                        axisLabel: {
-                            fontFamily: 'Inter',
-                            color: '#6b7280',
-                            formatter: function(value) {
-                                return (value / 1000000) + 'M';
-                            }
-                        },
-                        splitLine: {
-                            lineStyle: {
-                                color: '#f3f4f6'
-                            }
-                        }
-                    },
-                    series: [
-                        {
-                            name: 'Doanh thu',
-                            type: 'line',
-                            smooth: true,
-                            symbol: 'circle',
-                            symbolSize: 8,
-                            lineStyle: {
-                                width: 3,
-                                color: '#3b82f6'
-                            },
-                            itemStyle: {
-                                color: '#3b82f6',
-                                borderWidth: 2,
-                                borderColor: '#fff'
-                            },
-                            areaStyle: {
-                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                                    { offset: 0, color: 'rgba(59, 130, 246, 0.3)' },
-                                    { offset: 1, color: 'rgba(59, 130, 246, 0.05)' }
-                                ])
-                            },
-                            data: [120000, 190000, 300000, 500000, 420000, 680000]
-                        },
-                        {
-                            name: 'Lợi nhuận',
-                            type: 'line',
-                            smooth: true,
-                            symbol: 'circle',
-                            symbolSize: 8,
-                            lineStyle: {
-                                width: 3,
-                                color: '#10b981'
-                            },
-                            itemStyle: {
-                                color: '#10b981',
-                                borderWidth: 2,
-                                borderColor: '#fff'
-                            },
-                            data: [30000, 45000, 80000, 150000, 120000, 200000]
-                        },
-                        {
-                            name: 'Chi phí',
-                            type: 'bar',
-                            barWidth: '60%',
-                            itemStyle: {
-                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                                    { offset: 0, color: '#8b5cf6' },
-                                    { offset: 1, color: '#a855f7' }
-                                ]),
-                                borderRadius: [4, 4, 0, 0]
-                            },
-                            data: [90000, 145000, 220000, 350000, 300000, 480000]
-                        }
-                    ],
-                    animation: true,
-                    animationDuration: 2000,
-                    animationEasing: 'elasticOut'
-                };
-                
-                myChart${index}.setOption(option${index});
-                
-                // Add interactive features
-                myChart${index}.on('click', function(params) {
-                    console.log('Chart clicked:', params);
-                    // Add custom click behavior here
-                });
-                
-                myChart${index}.on('mouseover', function(params) {
-                    // Add hover effects
-                    if (params.componentType === 'series') {
-                        myChart${index}.dispatchAction({
-                            type: 'highlight',
-                            seriesIndex: params.seriesIndex,
-                            dataIndex: params.dataIndex
-                        });
-                    }
-                });
-                
-                // Handle window resize
-                window.addEventListener('resize', function() {
-                    myChart${index}.resize();
-                });
-                
-                // Add keyboard shortcuts for chart interaction
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'r' || e.key === 'R') {
-                        myChart${index}.resize();
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('Error creating charts for slide ${index}:', error);
-        }
-    `;
 }
 
 // Generate chart script for widget format
@@ -1661,11 +842,12 @@ function renderWidgetContentSlide(slide, index, bgColor, textColor, align) {
     
     let contentHtml = '';
     
-    // Handle different content sources
+    // Handle different content sources - simplified to use raw HTML
     if (slide.widget.html_content) {
         contentHtml = slide.widget.html_content;
     } else if (slide.content) {
-        contentHtml = `<p class="slide-content ${textColor}">${escapeHtml(slide.content)}</p>`;
+        // Use content directly as HTML without escaping
+        contentHtml = slide.content;
     } else if (slide.widget.data && typeof slide.widget.data === 'object') {
         // Convert data object to readable content
         contentHtml = `<div class="data-content ${textColor}">
@@ -1705,7 +887,144 @@ function renderWidgetContentSlide(slide, index, bgColor, textColor, align) {
     `;
 }
 
-function renderWidgetChartSlide(slide, index, bgColor, textColor, align) {
+// Generate graph script for widget format
+function generateWidgetGraphScript(slide, index) {
+    const graphData = slide.widget.data || {};
+    const nodes = graphData.nodes || [];
+    const links = graphData.links || [];
+    
+    // Create safe JavaScript object strings
+    const nodesStr = nodes.map(node => 
+        `{id: ${JSON.stringify(node.id)}, label: ${JSON.stringify(node.label)}}`
+    ).join(',\n                    ');
+    
+    const linksStr = links.map(link => 
+        `{source: ${JSON.stringify(link.source)}, target: ${JSON.stringify(link.target)}}`
+    ).join(',\n                    ');
+    
+    return `
+        // Initialize graph for slide ${index} (widget format)
+        try {
+            const graphContainer${index} = document.getElementById('graph-${index}');
+            if (graphContainer${index} && typeof d3 !== 'undefined') {
+                // Clear any existing content
+                d3.select('#graph-${index}').selectAll("*").remove();
+                
+                // Set up dimensions
+                const width = graphContainer${index}.clientWidth || 800;
+                const height = graphContainer${index}.clientHeight || 500;
+                
+                // Create SVG
+                const svg = d3.select('#graph-${index}')
+                    .append('svg')
+                    .attr('width', width)
+                    .attr('height', height);
+                
+                // Create graph data
+                const nodes = [
+                    ${nodesStr}
+                ];
+                const links = [
+                    ${linksStr}
+                ];
+                
+                // Debug: Log the parsed data
+                console.log('Parsed nodes for slide ${index}:', nodes);
+                console.log('Parsed links for slide ${index}:', links);
+                
+                // Create force simulation
+                const simulation = d3.forceSimulation(nodes)
+                    .force('link', d3.forceLink(links).id(d => d.id).distance(100))
+                    .force('charge', d3.forceManyBody().strength(-300))
+                    .force('center', d3.forceCenter(width / 2, height / 2));
+                
+                // Create links
+                const link = svg.append('g')
+                    .attr('class', 'links')
+                    .selectAll('line')
+                    .data(links)
+                    .enter().append('line')
+                    .attr('stroke', '#999')
+                    .attr('stroke-opacity', 0.6)
+                    .attr('stroke-width', 2);
+                
+                // Create nodes
+                const node = svg.append('g')
+                    .attr('class', 'nodes')
+                    .selectAll('g')
+                    .data(nodes)
+                    .enter().append('g')
+                    .call(d3.drag()
+                        .on('start', dragstarted)
+                        .on('drag', dragged)
+                        .on('end', dragended));
+                
+                // Add circles to nodes
+                node.append('circle')
+                    .attr('r', 20)
+                    .attr('fill', d => d.label.includes('Nam') ? '#4F46E5' : '#EC4899')
+                    .attr('stroke', '#fff')
+                    .attr('stroke-width', 2);
+                
+                // Add labels to nodes
+                node.append('text')
+                    .text(d => d.label.split(' ')[0] + '\\n' + d.label.split(' ').slice(1).join(' '))
+                    .attr('text-anchor', 'middle')
+                    .attr('dy', '.35em')
+                    .attr('font-size', '10px')
+                    .attr('fill', '#fff')
+                    .attr('font-weight', 'bold');
+                
+                // Add title tooltip
+                node.append('title')
+                    .text(d => d.label);
+                
+                // Update positions on simulation tick
+                simulation.on('tick', () => {
+                    link
+                        .attr('x1', d => d.source.x)
+                        .attr('y1', d => d.source.y)
+                        .attr('x2', d => d.target.x)
+                        .attr('y2', d => d.target.y);
+                    
+                    node
+                        .attr('transform', d => \`translate(\${d.x},\${d.y})\`);
+                });
+                
+                // Drag functions
+                function dragstarted(event, d) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                }
+                
+                function dragged(event, d) {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                }
+                
+                function dragended(event, d) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                }
+                
+                // Handle window resize
+                window.addEventListener('resize', function() {
+                    const newWidth = graphContainer${index}.clientWidth || 800;
+                    const newHeight = graphContainer${index}.clientHeight || 500;
+                    svg.attr('width', newWidth).attr('height', newHeight);
+                    simulation.force('center', d3.forceCenter(newWidth / 2, newHeight / 2));
+                    simulation.alpha(0.3).restart();
+                });
+            }
+        } catch (error) {
+            console.error('Error creating widget graph for slide ${index}:', error);
+        }
+    `;
+}
+
+function renderWidgetContentSlide(slide, index, bgColor, textColor, align) {
     const alignClass = align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left';
     const position = slide.position;
     
@@ -1724,6 +1043,36 @@ function renderWidgetChartSlide(slide, index, bgColor, textColor, align) {
                 <div class="chart-container slideInLeft">
                     <canvas id="chart-${index}" class="chart-canvas"></canvas>
                     <div id="echart-${index}" class="echart-container"></div>
+                </div>
+                
+                ${slide.button ? `<div class="button-container scaleIn">
+                    <a href="${escapeHtml(slide.button.url)}" class="slide-button" target="_blank">
+                        ${escapeHtml(slide.button.text)}
+                    </a>
+                </div>` : ''}
+            </div>
+        </section>
+    `;
+}
+
+function renderWidgetGraphSlide(slide, index, bgColor, textColor, align) {
+    const alignClass = align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left';
+    const position = slide.position;
+    
+    return `
+        <section class="slide ${bgColor} ${textColor}" 
+                 data-x="${position.x}" 
+                 data-y="${position.y}" 
+                 data-z="${position.z}" 
+                 data-rotate-x="${position.rotateX}" 
+                 data-rotate-y="${position.rotateY}" 
+                 data-scale="${position.scale}">
+            <div class="slide-container ${alignClass}">
+                ${slide.title ? `<h1 class="slide-title ${textColor} fadeIn">${escapeHtml(slide.title)}</h1>` : ''}
+                ${slide.subtitle ? `<h2 class="slide-subtitle ${textColor} slideUp">${escapeHtml(slide.subtitle)}</h2>` : ''}
+                
+                <div class="graph-container slideInLeft">
+                    <div id="graph-${index}" class="graph-canvas" style="width: 100%; height: 500px;"></div>
                 </div>
                 
                 ${slide.button ? `<div class="button-container scaleIn">

@@ -60,6 +60,9 @@
     <!-- ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
     
+    <!-- D3.js for Graph Visualization -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
     <!-- Chart Animation Manager -->
     <script src="./chart-animations.js"></script>
     
@@ -95,9 +98,7 @@
         </div>
     </div>
     
-    <div class="swipe-hint" id="swipeHint">
-        <i class="fas fa-hand-point-left"></i> Vuốt sang trái/phải để chuyển slide
-    </div>
+
 
     <!-- Navigation Buttons -->
     <div class="slide-navigation">
@@ -129,6 +130,128 @@
         let currentSlideIndex = 0;
         let totalSlides = 0;
         let financialManager = null;
+        let chartInstances = new Map(); // Store chart instances for cleanup
+
+        // Enhanced EChart JSON processing utilities
+        function toEchartJson(obj) { 
+            function preprocess(obj){ 
+                if (obj && typeof obj === "object") { 
+                    if (obj.__js_function__ && obj.value) { 
+                        return `__FUNC__${obj.value}__ENDFUNC__`; 
+                    } 
+                    if (Array.isArray(obj)) { 
+                        return obj.map(preprocess); 
+                    } 
+                    return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, preprocess(v)])); 
+                } 
+                return obj; 
+            } 
+        
+            // B1: duyệt thay thế function 
+            let preprocessed = preprocess(obj); 
+        
+            // B2: stringify 
+            let raw = JSON.stringify(preprocessed, null, 2); 
+        
+            // B3: thay thế chuỗi function về code JS thật 
+            raw = raw.replace(/"__FUNC__/g, "").replace(/__ENDFUNC__"/g, ""); 
+        
+            return raw; 
+        }
+
+        // JavaScript function processing utilities
+        function processJavaScriptFunction(funcStr) {
+            if (typeof funcStr !== 'string') return funcStr;
+            
+            try {
+                // Clean the function string
+                let cleanFunc = funcStr.trim();
+                
+                // Remove 'function' keyword if present at the start
+                if (cleanFunc.startsWith('function')) {
+                    cleanFunc = cleanFunc.substring(8).trim();
+                }
+                
+                // If it doesn't start with parentheses, it might be a function body only
+                if (!cleanFunc.startsWith('(')) {
+                    // Assume it's a function body and wrap it
+                    cleanFunc = `function() { ${cleanFunc} }`;
+                } else {
+                    // It's a proper function definition, add 'function' keyword
+                    cleanFunc = `function${cleanFunc}`;
+                }
+                
+                // Create and return the function
+                return eval(`(${cleanFunc})`);
+            } catch (error) {
+                console.warn('Failed to process JavaScript function:', error);
+                return funcStr;
+            }
+        }
+
+        function processChartOptions(options) {
+            if (!options || typeof options !== 'object') return options;
+            
+            // Use toEchartJson for better function handling
+            let processed;
+            try {
+                // First try to use toEchartJson if the object has __js_function__ markers
+                const jsonStr = toEchartJson(options);
+                processed = eval(`(${jsonStr})`);
+            } catch (error) {
+                console.warn('toEchartJson failed, falling back to legacy processing:', error);
+                // Fallback to legacy processing
+                processed = JSON.parse(JSON.stringify(options));
+                
+                function processObject(obj) {
+                    if (!obj || typeof obj !== 'object') return obj;
+                    
+                    for (const key in obj) {
+                        if (obj.hasOwnProperty(key)) {
+                            const value = obj[key];
+                            
+                            if (typeof value === 'object' && value !== null && value.__js_function__ && value.value) {
+                                // Handle __js_function__ objects
+                                obj[key] = processJavaScriptFunction(value.value);
+                            } else if (typeof value === 'string' && value.includes('function')) {
+                                // This might be a JavaScript function
+                                obj[key] = processJavaScriptFunction(value);
+                            } else if (typeof value === 'object' && value !== null) {
+                                processObject(value);
+                            }
+                        }
+                    }
+                }
+                
+                processObject(processed);
+            }
+            
+            return processed;
+        }
+
+        // Global cleanup function
+        function cleanupAllCharts() {
+            chartInstances.forEach((chart, chartId) => {
+                try {
+                    chart.dispose();
+                    console.log('Chart disposed on cleanup:', chartId);
+                } catch (error) {
+                    console.warn('Error disposing chart on cleanup:', chartId, error);
+                }
+            });
+            chartInstances.clear();
+            
+            // Remove all resize handlers
+            document.querySelectorAll('[id^="chart-"]').forEach(element => {
+                if (element._chartResizeHandler) {
+                    window.removeEventListener('resize', element._chartResizeHandler);
+                    delete element._chartResizeHandler;
+                }
+            });
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', cleanupAllCharts);
 
         // Initialize the financial presentation
         async function initFinancialPresentation() {
@@ -165,7 +288,6 @@
                         
                         // Initialize financial effects
                         financialManager.init();
-                        showSwipeHint();
                     }, 1000);
                 }, 2000);
                 
@@ -255,6 +377,9 @@
                     switch (slide.widget.widget_type) {
                         case 'chart':
                             slideHTML = generateWidgetChartSlide(slide, index);
+                            break;
+                        case 'graph':
+                            slideHTML = generateWidgetGraphSlide(slide, index);
                             break;
                         case 'table':
                             slideHTML = generateWidgetTableSlide(slide, index);
@@ -396,7 +521,7 @@
                     ${slide.subtitle ? `<h3 class="financial-slide-subtitle">${slide.subtitle}</h3>` : ''}
                     
                     <div class="financial-chart">
-                        <div id="chart-${index}" class="w-full h-96"></div>
+                        <div id="chart-${slide.id}" class="w-full h-96"></div>
                     </div>
                     
                     ${slide.button ? `<div class="financial-button-container">
@@ -508,6 +633,31 @@
             `;
         }
 
+        // Generate widget graph slide
+        function generateWidgetGraphSlide(slide, index) {
+            const alignClass = slide.style?.align === 'center' ? 'text-center' : 
+                              slide.style?.align === 'right' ? 'text-right' : 'text-left';
+            
+            return `
+                <div class="financial-slide-content ${alignClass}">
+                    ${slide.title ? `<h2 class="financial-slide-title">${slide.title}</h2>` : ''}
+                    ${slide.subtitle ? `<h3 class="financial-slide-subtitle">${slide.subtitle}</h3>` : ''}
+                    
+                    ${slide.image ? generateFinancialImageHTML(slide.image, index) : ''}
+                    
+                    <div class="financial-graph">
+                        <div id="graph-${slide.id}" class="graph-container" style="width: 100%; height: 500px; border: 1px solid #ddd; border-radius: 8px;"></div>
+                    </div>
+                    
+                    ${slide.button ? `<div class="financial-button-container">
+                        <a href="${slide.button.url}" class="financial-nav-btn" target="_blank">
+                            ${slide.button.text}
+                        </a>
+                    </div>` : ''}
+                </div>
+            `;
+        }
+
         // Generate financial image HTML
         function generateFinancialImageHTML(imageSrc, index) {
             if (!imageSrc) return '';
@@ -594,9 +744,9 @@
                 controls: false,
                 progress: false,
                 center: false, // Disable centering to use full screen
-                transition: 'none', // We handle transitions manually
-                transitionSpeed: 'fast',
-                backgroundTransition: 'none',
+                transition: 'slide', // Smooth slide transition
+                transitionSpeed: 'slow', // Slower for more elegant feel
+                backgroundTransition: 'fade',
                 
                 // Full Screen Configuration
                 width: '100%',
@@ -607,7 +757,7 @@
                 
                 // Performance optimizations
                 embedded: false,
-                touch: true,
+                touch: false,
                 loop: false,
                 rtl: false,
                 navigationMode: 'default',
@@ -629,8 +779,18 @@
             Reveal.on('slidechanged', event => {
                 currentSlideIndex = event.indexh;
                 updateFinancialCounter();
-                updateSwipeIndicator();
                 updateNavigationButtons(); // Update navigation button states
+                
+                console.log('Slide changed from', event.previousSlide?.id || 'none', 'to', event.currentSlide?.id || 'none');
+                
+                // Cleanup charts from previous slide if exists
+                // Only cleanup if we're actually moving to a different slide
+                if (event.previousSlide && event.previousSlide !== event.currentSlide) {
+                    // Use setTimeout to avoid conflicts with initialization
+                    setTimeout(() => {
+                        cleanupChartsOnSlide(event.previousSlide);
+                    }, 50);
+                }
                 
                 // Optimized slide animations with debouncing
                 if (financialManager) {
@@ -642,8 +802,11 @@
                     });
                 }
                 
-                // Initialize charts for newly visible slide
-                initializeChartsOnSlide(event.currentSlide);
+                // Initialize charts for newly visible slide with delay
+                // This ensures DOM is fully ready and cleanup is complete
+                setTimeout(() => {
+                    initializeChartsOnSlide(event.currentSlide);
+                }, 150);
             });
 
             // Initialize slide counter
@@ -652,16 +815,17 @@
 
         // Initialize financial charts
         function initializeFinancialCharts() {
-            // Initialize charts for current slide first
-            initializeChartsOnSlide(Reveal.getCurrentSlide());
+            console.log('initializeFinancialCharts: Starting chart initialization');
             
-            // Initialize charts for all slides
-            const chartElements = document.querySelectorAll('[id^="chart-"]');
-            chartElements.forEach((element, index) => {
-                const slideIndex = parseInt(element.id.split('-')[1]);
-                // Create demo financial chart
-                createFinancialDemoChart(element.id, slideIndex);
-            });
+            // Initialize charts for current slide only
+            // Other slides will be initialized when navigated to
+            const currentSlide = Reveal.getCurrentSlide();
+            if (currentSlide) {
+                console.log('Initializing charts for current slide:', currentSlide.id || 'unnamed');
+                initializeChartsOnSlide(currentSlide);
+            } else {
+                console.warn('No current slide found for chart initialization');
+            }
         }
 
         // Update financial counter
@@ -717,7 +881,24 @@
             const element = document.getElementById(elementId);
             if (!element) return;
             
+            // Dispose existing chart if exists
+            if (chartInstances.has(elementId)) {
+                const existingChart = chartInstances.get(elementId);
+                try {
+                    existingChart.dispose();
+                } catch (error) {
+                    console.warn('Error disposing existing chart:', elementId, error);
+                }
+            }
+            
             const chart = echarts.init(element);
+            
+            // Log original data for debugging
+            console.log('Original chart data for', elementId, ':', data);
+            
+            // Process chart options with toEchartJson
+            const processedData = processChartOptions(data);
+            console.log('Processed chart data for', elementId, ':', processedData);
             
             const option = {
                 backgroundColor: 'white',
@@ -725,15 +906,26 @@
                     fontFamily: 'Inter, sans-serif',
                     color: '#1e3a8a'
                 },
-                ...data
+                ...processedData
             };
             
             chart.setOption(option);
             
-            // Resize chart when window resizes
-            window.addEventListener('resize', () => {
-                chart.resize();
-            });
+            // Store chart instance for cleanup
+            chartInstances.set(elementId, chart);
+            
+            // Create resize handler
+            const resizeHandler = () => {
+                if (chart && !chart.isDisposed()) {
+                    chart.resize();
+                }
+            };
+            
+            // Store resize handler for cleanup
+            element._chartResizeHandler = resizeHandler;
+            window.addEventListener('resize', resizeHandler);
+            
+            console.log('Financial chart created:', elementId);
         }
 
         // Create financial demo chart
@@ -820,21 +1012,284 @@
             createFinancialChart(elementId, demoData, slideIndex);
         }
 
+        // Cleanup chart instances for a specific slide
+        function cleanupChartsOnSlide(slide) {
+            if (!slide) {
+                console.warn('cleanupChartsOnSlide: No slide provided');
+                return;
+            }
+            
+            const chartElements = slide.querySelectorAll('[id^="chart-"]');
+            console.log('cleanupChartsOnSlide: Found', chartElements.length, 'chart elements to cleanup');
+            
+            chartElements.forEach((element) => {
+                const chartId = element.id;
+                
+                // Only dispose if chart instance exists and is not already disposed
+                if (chartInstances.has(chartId)) {
+                    const chartInstance = chartInstances.get(chartId);
+                    try {
+                        if (chartInstance && !chartInstance.isDisposed()) {
+                            chartInstance.dispose();
+                            console.log('Chart disposed:', chartId);
+                        } else {
+                            console.log('Chart already disposed or invalid:', chartId);
+                        }
+                    } catch (error) {
+                        console.warn('Error disposing chart:', chartId, error);
+                    }
+                    chartInstances.delete(chartId);
+                }
+                
+                // Remove resize event listeners
+                if (element._chartResizeHandler) {
+                    window.removeEventListener('resize', element._chartResizeHandler);
+                    delete element._chartResizeHandler;
+                    console.log('Removed resize handler for:', chartId);
+                }
+            });
+        }
+
         // Initialize charts on current slide
         function initializeChartsOnSlide(slide) {
+            if (!slide) {
+                console.warn('initializeChartsOnSlide: No slide provided');
+                return;
+            }
+            
             const chartElements = slide.querySelectorAll('[id^="chart-"]');
+            const graphElements = slide.querySelectorAll('[id^="graph-"]');
+            console.log('initializeChartsOnSlide: Found', chartElements.length, 'chart elements and', graphElements.length, 'graph elements');
+            
             chartElements.forEach((element, index) => {
-                const slideIndex = parseInt(element.id.split('-')[1]);
-                const slideInfo = slideData[slideIndex];
+                const chartId = element.id;
                 
-                // Check for new widget format first
-                if (slideInfo?.widget?.widget_type === 'chart') {
-                    createWidgetChart(element.id, slideInfo.widget.data, slideIndex);
+                // Check if chart already exists and is not disposed
+                if (chartInstances.has(chartId)) {
+                    const existingChart = chartInstances.get(chartId);
+                    if (existingChart && !existingChart.isDisposed()) {
+                        console.log('Chart already exists and is active:', chartId);
+                        // Resize existing chart to ensure proper display
+                        try {
+                            existingChart.resize();
+                            return; // Skip re-creation
+                        } catch (error) {
+                            console.warn('Error resizing existing chart:', chartId, error);
+                            // Continue to re-create chart
+                        }
+                    }
                 }
-                // Fallback to old format
-                else if (slideInfo?.chart) {
-                    createDemoChart(element.id, slideIndex);
+                
+                // Clean up any existing chart instance for this element
+                if (chartInstances.has(chartId)) {
+                    const chartInstance = chartInstances.get(chartId);
+                    try {
+                        chartInstance.dispose();
+                        console.log('Disposed existing chart:', chartId);
+                    } catch (error) {
+                        console.warn('Error disposing existing chart:', chartId, error);
+                    }
+                    chartInstances.delete(chartId);
                 }
+                
+                // Remove any existing resize handlers
+                if (element._chartResizeHandler) {
+                    window.removeEventListener('resize', element._chartResizeHandler);
+                    delete element._chartResizeHandler;
+                }
+                
+                const slideIndex = parseInt(chartId.split('-')[1]);
+                
+                // Find slide info by ID or by array index
+                let slideInfo = slideData.find(slide => slide.id === slideIndex);
+                if (!slideInfo) {
+                    // Fallback to array index (0-based)
+                    slideInfo = slideData[slideIndex - 1] || slideData[slideIndex];
+                }
+                
+                console.log('Processing chart:', chartId, 'slideIndex:', slideIndex, 'slideInfo found:', !!slideInfo);
+                
+                // Add a small delay to ensure DOM is ready
+                setTimeout(() => {
+                    // Check for new widget format first
+                    if (slideInfo?.widget?.widget_type === 'chart') {
+                        // Check if widget_code has actual chart configuration
+                        let chartConfig;
+                        if (slideInfo.widget.widget_code && 
+                            typeof slideInfo.widget.widget_code === 'object' && 
+                            Object.keys(slideInfo.widget.widget_code).length > 0 &&
+                            (slideInfo.widget.widget_code.series || slideInfo.widget.widget_code.xAxis || slideInfo.widget.widget_code.yAxis)) {
+                            // Use widget_code (ECharts format)
+                            chartConfig = slideInfo.widget.widget_code;
+                            console.log('Using widget_code for chart:', chartId);
+                        } else if (slideInfo.widget.data && 
+                                   typeof slideInfo.widget.data === 'object' && 
+                                   Object.keys(slideInfo.widget.data).length > 0) {
+                            // Use data (Chart.js format)
+                            chartConfig = slideInfo.widget.data;
+                            console.log('Using widget data for chart:', chartId);
+                        } else {
+                            console.warn('No valid chart data found for:', chartId);
+                            return;
+                        }
+                        
+                        createWidgetChart(chartId, chartConfig, slideIndex);
+                    }
+                    // Fallback to old format
+                    else if (slideInfo?.chart) {
+                        createDemoChart(chartId, slideIndex);
+                    }
+                    // Fallback to demo chart if no data found
+                    else {
+                        console.log('No chart data found, creating demo chart for:', chartId);
+                        createFinancialDemoChart(chartId, slideIndex);
+                    }
+                }, 100); // Small delay to ensure DOM is ready
+            });
+            
+            // Process graph elements
+            graphElements.forEach((element, index) => {
+                const graphId = element.id;
+                const slideIndex = parseInt(graphId.split('-')[1]);
+                
+                // Find slide info by ID or by array index
+                let slideInfo = slideData.find(slide => slide.id === slideIndex);
+                if (!slideInfo) {
+                    slideInfo = slideData[slideIndex - 1] || slideData[slideIndex];
+                }
+                
+                console.log('Processing graph:', graphId, 'slideIndex:', slideIndex, 'slideInfo found:', !!slideInfo);
+                
+                // Add a small delay to ensure DOM is ready
+                setTimeout(() => {
+                    if (slideInfo?.widget?.widget_type === 'graph') {
+                        createWidgetGraph(graphId, slideInfo.widget.data, slideIndex);
+                    }
+                }, 100);
+            });
+        }
+
+        // Create widget graph using D3.js
+        function createWidgetGraph(elementId, graphData, slideIndex) {
+            console.log('Creating graph for:', elementId, 'with data:', graphData);
+            console.log('D3 available:', typeof d3 !== 'undefined');
+            console.log('Graph data nodes:', graphData?.nodes?.length);
+            console.log('Graph data links:', graphData?.links?.length);
+            
+            const container = document.getElementById(elementId);
+            if (!container) {
+                console.error('Graph container not found:', elementId);
+                return;
+            }
+            
+            // Clear any existing content
+            d3.select(`#${elementId}`).selectAll("*").remove();
+            
+            const nodes = graphData.nodes || [];
+            const links = graphData.links || [];
+            
+            if (nodes.length === 0) {
+                console.warn('No nodes data found for graph:', elementId);
+                return;
+            }
+            
+            // Set up dimensions
+            const width = container.clientWidth || 800;
+            const height = container.clientHeight || 500;
+            
+            // Create SVG
+            const svg = d3.select(`#${elementId}`)
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+            
+            // Create force simulation
+            const simulation = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(100))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width / 2, height / 2));
+            
+            // Create links
+            const link = svg.append('g')
+                .attr('class', 'links')
+                .selectAll('line')
+                .data(links)
+                .enter().append('line')
+                .attr('stroke', '#999')
+                .attr('stroke-opacity', 0.6)
+                .attr('stroke-width', 2);
+            
+            // Create nodes
+            const node = svg.append('g')
+                .attr('class', 'nodes')
+                .selectAll('circle')
+                .data(nodes)
+                .enter().append('circle')
+                .attr('r', 20)
+                .attr('fill', d => d.label.includes('Nam') ? '#3b82f6' : '#ec4899')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+            
+            // Add labels
+            const label = svg.append('g')
+                .attr('class', 'labels')
+                .selectAll('text')
+                .data(nodes)
+                .enter().append('text')
+                .text(d => d.label)
+                .attr('font-size', '12px')
+                .attr('font-family', 'Arial, sans-serif')
+                .attr('text-anchor', 'middle')
+                .attr('dy', '.35em');
+            
+            // Add tooltips
+            node.append('title')
+                .text(d => d.label);
+            
+            // Update positions on simulation tick
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                
+                node
+                    .attr('cx', d => d.x)
+                    .attr('cy', d => d.y);
+                
+                label
+                    .attr('x', d => d.x)
+                    .attr('y', d => d.y);
+            });
+            
+            // Drag functions
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+            
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+            
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                const newWidth = container.clientWidth || 800;
+                const newHeight = container.clientHeight || 500;
+                svg.attr('width', newWidth).attr('height', newHeight);
+                simulation.force('center', d3.forceCenter(newWidth / 2, newHeight / 2));
+                simulation.alpha(0.3).restart();
             });
         }
 
@@ -911,18 +1366,26 @@
             createFinancialChart(elementId, demoData, slideIndex);
         }
 
-        // Create widget chart for new format
-        function createWidgetChart(elementId, chartData, slideIndex) {
-            const element = document.getElementById(elementId);
-            if (!element) return;
+        // Convert Chart.js format to ECharts format
+        function convertChartJsToECharts(chartJsData) {
+            if (!chartJsData || !chartJsData.labels || !chartJsData.datasets) {
+                console.warn('Invalid Chart.js data format');
+                return null;
+            }
             
-            const chart = echarts.init(element);
+            const { labels, datasets } = chartJsData;
+            const firstDataset = datasets[0] || {};
             
-            // Default chart configuration
-            let option = {
+            // Determine chart type based on dataset
+            let chartType = 'bar'; // default
+            if (firstDataset.type) {
+                chartType = firstDataset.type;
+            }
+            
+            const option = {
                 backgroundColor: 'transparent',
                 title: {
-                    text: chartData?.title || 'Chart',
+                    text: firstDataset.label || 'Chart',
                     textStyle: {
                         color: '#1e3a8a',
                         fontFamily: 'Inter, sans-serif',
@@ -948,7 +1411,7 @@
                     }
                 },
                 legend: {
-                    data: chartData?.series?.map(s => s.name) || [],
+                    data: datasets.map(d => d.label || 'Data'),
                     textStyle: {
                         color: '#64748b',
                         fontFamily: 'Inter, sans-serif'
@@ -956,90 +1419,18 @@
                 }
             };
             
-            // Handle different chart types
-            if (chartData?.type === 'bar' || !chartData?.type) {
-                option.xAxis = {
-                    type: 'category',
-                    data: chartData?.categories || ['Category 1', 'Category 2', 'Category 3'],
-                    axisLine: {
-                        lineStyle: { color: '#64748b' }
-                    },
-                    axisLabel: {
-                        color: '#64748b',
-                        fontFamily: 'Inter, sans-serif'
-                    }
-                };
-                option.yAxis = {
-                    type: 'value',
-                    axisLine: {
-                        lineStyle: { color: '#64748b' }
-                    },
-                    axisLabel: {
-                        color: '#64748b',
-                        fontFamily: 'Inter, sans-serif'
-                    },
-                    splitLine: {
-                        lineStyle: { color: '#e2e8f0' }
-                    }
-                };
-                option.series = chartData?.series || [{
-                    name: 'Data',
-                    type: 'bar',
-                    data: [120, 200, 150],
-                    itemStyle: {
-                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            { offset: 0, color: '#3b82f6' },
-                            { offset: 1, color: '#1d4ed8' }
-                        ])
-                    }
-                }];
-            } else if (chartData?.type === 'line') {
-                option.xAxis = {
-                    type: 'category',
-                    data: chartData?.categories || ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-                    axisLine: {
-                        lineStyle: { color: '#64748b' }
-                    },
-                    axisLabel: {
-                        color: '#64748b',
-                        fontFamily: 'Inter, sans-serif'
-                    }
-                };
-                option.yAxis = {
-                    type: 'value',
-                    axisLine: {
-                        lineStyle: { color: '#64748b' }
-                    },
-                    axisLabel: {
-                        color: '#64748b',
-                        fontFamily: 'Inter, sans-serif'
-                    },
-                    splitLine: {
-                        lineStyle: { color: '#e2e8f0' }
-                    }
-                };
-                option.series = chartData?.series || [{
-                    name: 'Data',
-                    type: 'line',
-                    data: [120, 200, 150, 80, 70],
-                    smooth: true,
-                    itemStyle: {
-                        color: '#10b981'
-                    },
-                    lineStyle: {
-                        width: 3
-                    }
-                }];
-            } else if (chartData?.type === 'pie') {
+            if (chartType === 'pie') {
+                // For pie charts, convert data format
+                const pieData = labels.map((label, index) => ({
+                    name: label,
+                    value: firstDataset.data[index] || 0
+                }));
+                
                 option.series = [{
-                    name: 'Data',
+                    name: firstDataset.label || 'Data',
                     type: 'pie',
                     radius: '50%',
-                    data: chartData?.series?.[0]?.data || [
-                        { value: 1048, name: 'Category A' },
-                        { value: 735, name: 'Category B' },
-                        { value: 580, name: 'Category C' }
-                    ],
+                    data: pieData,
                     emphasis: {
                         itemStyle: {
                             shadowBlur: 10,
@@ -1048,14 +1439,235 @@
                         }
                     }
                 }];
+            } else {
+                // For bar/line charts
+                option.xAxis = {
+                    type: 'category',
+                    data: labels,
+                    axisLine: { lineStyle: { color: '#64748b' } },
+                    axisLabel: { color: '#64748b', fontFamily: 'Inter, sans-serif' }
+                };
+                option.yAxis = {
+                    type: 'value',
+                    axisLine: { lineStyle: { color: '#64748b' } },
+                    axisLabel: { color: '#64748b', fontFamily: 'Inter, sans-serif' },
+                    splitLine: { lineStyle: { color: '#e2e8f0' } }
+                };
+                
+                option.series = datasets.map((dataset, index) => {
+                    const series = {
+                        name: dataset.label || `Series ${index + 1}`,
+                        type: chartType === 'line' ? 'line' : 'bar',
+                        data: dataset.data || []
+                    };
+                    
+                    if (chartType === 'line') {
+                        series.smooth = true;
+                        series.lineStyle = { width: 3 };
+                        series.itemStyle = { color: dataset.backgroundColor || '#10b981' };
+                    } else {
+                        series.itemStyle = {
+                            color: dataset.backgroundColor || new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#3b82f6' },
+                                { offset: 1, color: '#1d4ed8' }
+                            ])
+                        };
+                    }
+                    
+                    return series;
+                });
             }
             
-            chart.setOption(option);
+            return option;
+        }
+
+        // Create widget chart for new format
+        function createWidgetChart(elementId, chartConfig, slideIndex) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                console.error('Chart element not found:', elementId);
+                return;
+            }
             
-            // Handle resize
-            window.addEventListener('resize', () => {
-                chart.resize();
-            });
+            try {
+                // Dispose existing chart if exists
+                if (chartInstances.has(elementId)) {
+                    const existingChart = chartInstances.get(elementId);
+                    try {
+                        existingChart.dispose();
+                        console.log('Existing chart disposed:', elementId);
+                    } catch (error) {
+                        console.warn('Error disposing existing chart:', elementId, error);
+                    }
+                }
+                
+                const chart = echarts.init(element);
+                let option;
+                
+                // Check if chartConfig is a complete ECharts configuration (widget_code format)
+                if (chartConfig && typeof chartConfig === 'object' && 
+                    (chartConfig.series || chartConfig.xAxis || chartConfig.yAxis || chartConfig.title)) {
+                    
+                    console.log('Using widget_code format for chart:', elementId);
+                    
+                    // Process the chart configuration to handle JavaScript functions
+                    option = processChartOptions(chartConfig);
+                    
+                } else if (chartConfig && chartConfig.labels && chartConfig.datasets) {
+                    // Chart.js format - convert to ECharts
+                    console.log('Converting Chart.js format to ECharts for chart:', elementId);
+                    
+                    option = convertChartJsToECharts(chartConfig);
+                    if (!option) {
+                        throw new Error('Failed to convert Chart.js data to ECharts format');
+                    }
+                    
+                } else {
+                    // Fallback to old data format
+                    console.log('Using legacy data format for chart:', elementId);
+                    
+                    const chartData = chartConfig;
+                    
+                    // Default chart configuration for legacy format
+                    option = {
+                        backgroundColor: 'transparent',
+                        title: {
+                            text: chartData?.title || 'Chart',
+                            textStyle: {
+                                color: '#1e3a8a',
+                                fontFamily: 'Inter, sans-serif',
+                                fontSize: 18,
+                                fontWeight: 'bold'
+                            }
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true,
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            borderColor: '#e2e8f0',
+                            textStyle: {
+                                color: '#374151',
+                                fontFamily: 'Inter, sans-serif'
+                            }
+                        },
+                        legend: {
+                            data: chartData?.series?.map(s => s.name) || [],
+                            textStyle: {
+                                color: '#64748b',
+                                fontFamily: 'Inter, sans-serif'
+                            }
+                        }
+                    };
+                    
+                    // Handle different chart types for legacy format
+                    if (chartData?.type === 'bar' || !chartData?.type) {
+                        option.xAxis = {
+                            type: 'category',
+                            data: chartData?.categories || ['Category 1', 'Category 2', 'Category 3'],
+                            axisLine: { lineStyle: { color: '#64748b' } },
+                            axisLabel: { color: '#64748b', fontFamily: 'Inter, sans-serif' }
+                        };
+                        option.yAxis = {
+                            type: 'value',
+                            axisLine: { lineStyle: { color: '#64748b' } },
+                            axisLabel: { color: '#64748b', fontFamily: 'Inter, sans-serif' },
+                            splitLine: { lineStyle: { color: '#e2e8f0' } }
+                        };
+                        option.series = chartData?.series || [{
+                            name: 'Data',
+                            type: 'bar',
+                            data: [120, 200, 150],
+                            itemStyle: {
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                    { offset: 0, color: '#3b82f6' },
+                                    { offset: 1, color: '#1d4ed8' }
+                                ])
+                            }
+                        }];
+                    } else if (chartData?.type === 'line') {
+                        option.xAxis = {
+                            type: 'category',
+                            data: chartData?.categories || ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                            axisLine: { lineStyle: { color: '#64748b' } },
+                            axisLabel: { color: '#64748b', fontFamily: 'Inter, sans-serif' }
+                        };
+                        option.yAxis = {
+                            type: 'value',
+                            axisLine: { lineStyle: { color: '#64748b' } },
+                            axisLabel: { color: '#64748b', fontFamily: 'Inter, sans-serif' },
+                            splitLine: { lineStyle: { color: '#e2e8f0' } }
+                        };
+                        option.series = chartData?.series || [{
+                            name: 'Data',
+                            type: 'line',
+                            data: [120, 200, 150, 80, 70],
+                            smooth: true,
+                            itemStyle: { color: '#10b981' },
+                            lineStyle: { width: 3 }
+                        }];
+                    } else if (chartData?.type === 'pie') {
+                        option.series = [{
+                            name: 'Data',
+                            type: 'pie',
+                            radius: '50%',
+                            data: chartData?.series?.[0]?.data || [
+                                { value: 1048, name: 'Category A' },
+                                { value: 735, name: 'Category B' },
+                                { value: 580, name: 'Category C' }
+                            ],
+                            emphasis: {
+                                itemStyle: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            }
+                        }];
+                    }
+                }
+                
+                // Set the chart option
+                chart.setOption(option);
+                
+                // Store chart instance for cleanup
+                chartInstances.set(elementId, chart);
+                
+                // Handle resize
+                const resizeHandler = () => {
+                    if (chart && !chart.isDisposed()) {
+                        chart.resize();
+                    }
+                };
+                window.addEventListener('resize', resizeHandler);
+                
+                // Store resize handler for cleanup
+                element._chartResizeHandler = resizeHandler;
+                
+                console.log('Chart created successfully:', elementId);
+                
+            } catch (error) {
+                console.error('Error creating chart:', elementId, error);
+                
+                // Show error message in the chart container
+                element.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #ef4444; font-family: Inter, sans-serif;">
+                        <div style="text-align: center;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                            <div>Lỗi tải biểu đồ</div>
+                            <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">
+                                ${error.message}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
         }
 
         // Show error message
@@ -1268,24 +1880,9 @@
             });
         }
 
-        // Show swipe hint
-        function showSwipeHint() {
-            const swipeHint = document.getElementById('swipeHint');
-            if (swipeHint) {
-                swipeHint.classList.add('show');
-                setTimeout(() => {
-                    swipeHint.classList.remove('show');
-                }, 3000);
-            }
-        }
 
-        // Update swipe indicator
-        function updateSwipeIndicator() {
-            const dots = document.querySelectorAll('.swipe-dot');
-            dots.forEach((dot, index) => {
-                dot.classList.toggle('active', index === currentSlideIndex);
-            });
-        }
+
+
 
         // Navigation function for slide buttons
         function navigateSlide(direction) {

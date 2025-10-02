@@ -428,21 +428,31 @@
                     }
                 };
                 
-                // Save to server
+                console.log('Saving slide data:', slideData);
+                
+                // Save to server - gửi trực tiếp slideData thay vì wrap trong slide_data
                 const response = await fetch('/save-slide-data', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        slide_data: slideData
-                    })
+                    body: JSON.stringify(slideData)
                 });
                 
                 if (!response.ok) {
-                    console.warn('Failed to save to server, falling back to localStorage');
+                    const errorText = await response.text();
+                    console.warn('Failed to save to server:', response.status, errorText);
+                    console.warn('Falling back to localStorage');
                     localStorage.setItem('slideData', JSON.stringify(slideData));
+                    return false;
                 }
+                
+                const result = await response.json();
+                console.log('Slide data saved successfully:', result);
+                
+                // Also save to localStorage for immediate access
+                localStorage.setItem('slideData', JSON.stringify(slideData));
+                return true;
                 
             } catch (error) {
                 console.error('Error saving slide data:', error);
@@ -456,7 +466,7 @@
                     }
                 };
                 localStorage.setItem('slideData', JSON.stringify(slideData));
-                throw error;
+                return false;
             }
         }
         
